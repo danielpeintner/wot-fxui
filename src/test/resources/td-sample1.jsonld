@@ -1,0 +1,35 @@
+{
+  "@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld"],
+  "@type": ["Thing"],
+  "name": "MyLampThing",
+  "interaction": [
+      {
+          "@type": ["Property"],
+          "name": "status",
+          "schema": {"type": "string"},
+          "writable": false,
+          "observable": true,
+          "form": [{
+              "href": "coaps://mylamp.example.com:5683/status",
+              "mediaType": "application/json"
+          }]
+      },
+      {
+          "@type": ["Action"],
+          "name": "toggle",
+          "form": [{
+              "href": "coaps://mylamp.example.com:5683/toggle",
+              "mediaType": "application/json"
+          }]
+      },
+      {
+          "@type": ["Event"],
+          "name": "overheating",
+          "schema": {"type": "string"},
+          "form": [{
+              "href": "coaps://mylamp.example.com:5683/oh",
+              "mediaType": "application/json"
+          }]
+      }
+  ]
+}
