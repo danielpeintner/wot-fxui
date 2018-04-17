@@ -7,11 +7,20 @@
           "@type": ["Property"],
           "name": "status",
           "schema": {"type": "string"},
-          "writable": false,
+          "writable": true,
           "observable": true,
           "form": [{
               "href": "coaps://mylamp.example.com:5683/status",
               "mediaType": "application/json"
+          }]
+      },
+      {
+          "@type": ["Property"],
+          "name": "brightness",
+          "schema": {"type": "number"},
+          "form": [{
+              "href": "coaps://mylamp.example.com:5683/brightness",
+              "mediaType": "application/exi"
           }]
       },
       {
