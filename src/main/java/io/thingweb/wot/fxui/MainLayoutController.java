@@ -2,6 +2,7 @@ package io.thingweb.wot.fxui;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -19,6 +20,8 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
 
+import org.controlsfx.dialog.ExceptionDialog;
+
 import io.thingweb.wot.fxui.JSONLD.Form;
 import io.thingweb.wot.fxui.client.Callback;
 import io.thingweb.wot.fxui.client.Client;
@@ -27,6 +30,9 @@ import io.thingweb.wot.fxui.client.Content;
 import io.thingweb.wot.fxui.client.MediaType;
 import io.thingweb.wot.fxui.client.UnsupportedException;
 import io.thingweb.wot.fxui.client.impl.AbstractCallback;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -35,6 +41,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
@@ -69,6 +76,12 @@ public class MainLayoutController {
 
     @FXML
     TabPane tabPane;
+
+    @FXML
+    Button button;
+
+    @FXML
+    TextField textFieldURI;
 
     static final Font FONT_CATEGORY = Font.font("Arial", FontWeight.BOLD, 20);
 
@@ -142,9 +155,11 @@ public class MainLayoutController {
                                         @Override
                                         public void onGet(String propertyName, Content response) {
                                             String res = new String(response.getContent());
-                                            textFieldGET.setText(res);
-                                            String msg = "Success: GET of " + propertyName + ": " + res;
-                                            addLog(textAreaLog, msg);
+                                            Platform.runLater(() -> {
+                                                textFieldGET.setText(res);
+                                                String msg = "Success: GET of " + propertyName + ": " + res;
+                                                addLog(textAreaLog, msg);
+                                            });
                                         }
 
                                         @Override
@@ -306,10 +321,23 @@ public class MainLayoutController {
     @FXML
     protected void handleMenuOpenTDURI(ActionEvent event) {
         try {
+        	// http://code.makery.ch/blog/javafx-8-dialogs/
+//        	Dialogs.create()
+//            .owner(stage)
+//            .title("Information Dialog")
+//            .masthead("Look, an Information Dialog")
+//            .message("I have a great message for you!")
+//            .showInformation();
+//
+//        	ExceptionDialog ed = new ExceptionDialog(new RuntimeException("XX"));
+//        	ed.show();
+
+
             TextInputDialog dialog = new TextInputDialog("http://localhost:8080/counter");
             dialog.setTitle("URI Input Dialog");
             dialog.setHeaderText("Input Dialog for URI");
             dialog.setContentText("Please enter URI:");
+
 
             // Traditional way to get the response value.
             Optional<String> result = dialog.showAndWait();
@@ -324,6 +352,47 @@ public class MainLayoutController {
                 loadTD(jobj);
             }
 
+//            // Note: jpro does not allow showAndWaits etc
+//            // https://www.jpro.one/?page=docs/current/1.8/JPRO%20CHECKLIST
+//            dialog.show();
+//
+//            dialog.resultProperty().addListener(new ChangeListener<String>() {
+//				@Override
+//				public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+//					try {
+//						LOGGER.info("changed to: " + newValue);
+//						URI uri = new URI(newValue);
+//						// TODO coap scheme use californium
+//
+//						URL url = uri.toURL(); //get URL from your uri object
+//						InputStream istream = url.openStream();
+//
+//						JsonObject jobj = JSONLD.parseJSON(istream);
+//						loadTD(jobj);
+//					} catch (Exception e) {
+//			            LOGGER.severe(e.getMessage());
+//			            showAlertDialog(e);
+//					}
+//				}
+//            });
+
+        } catch (Exception e) {
+            LOGGER.severe(e.getMessage());
+            showAlertDialog(e);
+        }
+    }
+
+    @FXML
+    protected void handleLoadTDURI(ActionEvent event) {
+        try {
+            URI uri = new URI(textFieldURI.getText());
+            // TODO coap scheme use californium
+
+            URL url = uri.toURL(); //get URL from your uri object
+            InputStream istream = url.openStream();
+
+            JsonObject jobj = JSONLD.parseJSON(istream);
+            loadTD(jobj);
         } catch (Exception e) {
             LOGGER.severe(e.getMessage());
             showAlertDialog(e);

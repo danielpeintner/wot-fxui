@@ -1,0 +1,70 @@
+
+/**
+ ******************  Script Configuration ******************
+ */
+buildscript {
+  repositories {
+	mavenCentral()
+    jcenter()
+
+    maven {
+      url "http://sandec.bintray.com/repo"
+    }
+  }
+
+  dependencies {
+    classpath 'com.sandec.jpro:jpro-plugin-gradle:2018.1.1'
+  }
+}
+
+
+repositories {
+  jcenter()
+}
+
+
+/**
+ ******************  Java Configuration ******************
+ */
+apply plugin: 'java'
+apply plugin: 'application'
+
+compileJava {
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+}
+
+dependencies {
+	compile 'javax.json:javax.json-api:1.1.2'
+	compile 'org.glassfish:javax.json:1.1'
+	compile 'org.eclipse.californium:californium-core:2.0.0-M9'
+	compile 'org.controlsfx:controlsfx:8.40.14'
+}
+
+
+/**
+ ******************  jpro Configuration ******************
+ */
+apply plugin: 'com.sandec.jpro'
+
+
+/**
+ * App Main Class
+ */
+mainClassName = 'io.thingweb.wot.fxui.FXUIApplication'
+
+/**
+ * jpro settings
+ */
+jpro {
+  // for debugging
+  // JVMArgs << '-agentlib:jdwp=transport=dt_socket,server=n,address=5006,suspend=y'
+
+  //jpro server port
+  port = 8088
+
+  //jpro version (optional)
+  jproVersion = "2018.1.1"
+
+  openingPath = ""
+}
