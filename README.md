@@ -9,6 +9,20 @@
 mvn jfx:native
 ```
 
+### Desktop
+
+```
+gradle run
+```
+
+### Android
+
+```
+gradle android /* generates an apk that is signed with a debug keystore and put it in the directorybuild/javafxports/android */
+gradle androidRelease /* generates an apk that is signed with the configured signingConfig and put it in the directorybuild/javafxports/android  */
+gradle androidInstall /* installs the generated debug apk onto a device that is connected to your desktop  */
+```
+
 ### Web Browser
 
 #### Start in foreground (development mode) ###

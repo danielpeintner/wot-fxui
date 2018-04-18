@@ -2,12 +2,10 @@ package io.thingweb.wot.fxui;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -15,12 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.logging.Logger;
 
-import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.json.JsonReader;
-
-import org.controlsfx.dialog.ExceptionDialog;
 
 import io.thingweb.wot.fxui.JSONLD.Form;
 import io.thingweb.wot.fxui.client.Callback;
@@ -28,11 +21,8 @@ import io.thingweb.wot.fxui.client.Client;
 import io.thingweb.wot.fxui.client.ClientFactory;
 import io.thingweb.wot.fxui.client.Content;
 import io.thingweb.wot.fxui.client.MediaType;
-import io.thingweb.wot.fxui.client.UnsupportedException;
 import io.thingweb.wot.fxui.client.impl.AbstractCallback;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -40,10 +30,9 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
@@ -52,14 +41,11 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -93,7 +79,7 @@ public class MainLayoutController {
     }
 
 
-    protected void loadTD(JsonObject jobj ) {
+    protected void loadTD(final JsonObject jobj ) {
         Tab t = new Tab(JSONLD.getThingName(jobj));
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
@@ -111,7 +97,7 @@ public class MainLayoutController {
         column2.setHgrow(Priority.ALWAYS);
         gridPane.getColumnConstraints().add(column2); // 2
 
-        TextArea textAreaLog = new TextArea();
+        final TextArea textAreaLog = new TextArea();
         textAreaLog.setEditable(false);
 
         int row = 0;
@@ -122,14 +108,14 @@ public class MainLayoutController {
                 Text category = new Text("Properties:");
                 category.setFont(FONT_CATEGORY);
                 gridPane.add(category, 0, row++, 4, 1);  // colidx, rowIdx, colSpan, rowSpan
-                for(String propertyName : props) {
+                for(final String propertyName : props) {
                     Text textProp = new Text(propertyName + ":");
                     gridPane.add(textProp, 1, row);
                     GridPane.setHalignment(textProp, HPos.RIGHT);
 
                     VBox vboxTextFields = new VBox();
                     //
-                    TextField textFieldGET = new TextField();
+                    final TextField textFieldGET = new TextField();
                     textFieldGET.setEditable(false);
                     textFieldGET.setDisable(true);
                     vboxTextFields.getChildren().add(textFieldGET);
@@ -153,13 +139,17 @@ public class MainLayoutController {
                                     System.out.println(client);
                                     Callback callback = new AbstractCallback() {
                                         @Override
-                                        public void onGet(String propertyName, Content response) {
-                                            String res = new String(response.getContent());
-                                            Platform.runLater(() -> {
-                                                textFieldGET.setText(res);
-                                                String msg = "Success: GET of " + propertyName + ": " + res;
-                                                addLog(textAreaLog, msg);
-                                            });
+                                        public void onGet(final String propertyName, Content response) {
+                                            final String res = new String(response.getContent());
+                                            Platform.runLater(
+                                            		new Runnable() {
+														@Override
+														public void run() {
+			                                                textFieldGET.setText(res);
+			                                                String msg = "Success: GET of " + propertyName + ": " + res;
+			                                                addLog(textAreaLog, msg);
+														}
+                                            		});
                                         }
 
                                         @Override
@@ -226,7 +216,7 @@ public class MainLayoutController {
                 Text category = new Text("Actions:");
                 category.setFont(FONT_CATEGORY);
                 gridPane.add(category, 0, row++, 4, 1);  // colidx, rowIdx, colSpan, rowSpan
-                for(String actionName : actions) {
+                for(final String actionName : actions) {
                     Text textProp = new Text(actionName + ":");
                     gridPane.add(textProp, 1, row);
                     GridPane.setHalignment(textProp, HPos.RIGHT);
