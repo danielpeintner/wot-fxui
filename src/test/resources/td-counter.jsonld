@@ -1,0 +1,81 @@
+{
+	"name": "counter",
+	"description": "counter example Thing",
+	"@context": ["https://w3c.github.io/wot/w3c-wot-td-context.jsonld", {
+		"iot": "http://iotschema.org/"
+	}],
+	"@type": "Thing",
+	"security": [],
+	"properties": {
+		"count": {
+			"type": "integer",
+			"description": "current counter value",
+			"iot:Custom": "example annotation",
+			"observable": true,
+			"writeable": true,
+			"forms": [{
+				"href": "http://192.168.178.22:8080/counter/properties/count",
+				"mediaType": "application/json"
+			}, {
+				"href": "ws://192.168.178.22:8080/counter/properties/count",
+				"mediaType": "application/json"
+			}, {
+				"href": "http://192.168.56.1:8080/counter/properties/count",
+				"mediaType": "application/json"
+			}, {
+				"href": "ws://192.168.56.1:8080/counter/properties/count",
+				"mediaType": "application/json"
+			}]
+		}
+	},
+	"actions": {
+		"increment": {
+			"forms": [{
+				"href": "http://192.168.178.22:8080/counter/actions/increment",
+				"mediaType": "application/json"
+			}, {
+				"href": "ws://192.168.178.22:8080/counter/actions/increment",
+				"mediaType": "application/json"
+			}, {
+				"href": "http://192.168.56.1:8080/counter/actions/increment",
+				"mediaType": "application/json"
+			}, {
+				"href": "ws://192.168.56.1:8080/counter/actions/increment",
+				"mediaType": "application/json"
+			}]
+		},
+		"decrement": {
+			"forms": [{
+				"href": "http://192.168.178.22:8080/counter/actions/decrement",
+				"mediaType": "application/json"
+			}, {
+				"href": "ws://192.168.178.22:8080/counter/actions/decrement",
+				"mediaType": "application/json"
+			}, {
+				"href": "http://192.168.56.1:8080/counter/actions/decrement",
+				"mediaType": "application/json"
+			}, {
+				"href": "ws://192.168.56.1:8080/counter/actions/decrement",
+				"mediaType": "application/json"
+			}]
+		},
+		"reset": {
+			"forms": [{
+				"href": "http://192.168.178.22:8080/counter/actions/reset",
+				"mediaType": "application/json"
+			}, {
+				"href": "ws://192.168.178.22:8080/counter/actions/reset",
+				"mediaType": "application/json"
+			}, {
+				"href": "http://192.168.56.1:8080/counter/actions/reset",
+				"mediaType": "application/json"
+			}, {
+				"href": "ws://192.168.56.1:8080/counter/actions/reset",
+				"mediaType": "application/json"
+			}]
+		}
+	},
+	"events": {},
+	"links": [],
+	"support": "none"
+}
