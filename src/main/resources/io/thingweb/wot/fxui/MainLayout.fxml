@@ -8,40 +8,46 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.TabPane?>
 
-
-<BorderPane fx:id="borderPaneRoot" xmlns:fx="http://javafx.com/fxml/1"
+<StackPane fx:id="stackPaneRoot" xmlns:fx="http://javafx.com/fxml/1"
 	xmlns="http://javafx.com/javafx/8.0.141" fx:controller="io.thingweb.wot.fxui.MainLayoutController">
-	<top>
-		<BorderPane>
+	<children>
+		<BorderPane fx:id="borderPaneRoot">
 			<top>
-				<MenuBar BorderPane.alignment="CENTER">
-					<menus>
-						<Menu mnemonicParsing="false" text="File">
-							<items>
-								<MenuItem mnemonicParsing="false" text="Open TD File"
-									onAction="#handleMenuOpenTDFile" />
-								<MenuItem mnemonicParsing="false" text="Open TD URI"
-									onAction="#handleMenuOpenTDURI" />
-								<SeparatorMenuItem></SeparatorMenuItem>
-								<MenuItem mnemonicParsing="false" text="Close" onAction="#handleMenuClose" />
-							</items>
-						</Menu>
-					</menus>
-				</MenuBar>
+				<BorderPane>
+					<top>
+						<MenuBar BorderPane.alignment="CENTER">
+							<menus>
+								<Menu mnemonicParsing="false" text="File">
+									<items>
+										<MenuItem mnemonicParsing="false" text="Open TD File"
+											onAction="#handleMenuOpenTDFile" />
+										<MenuItem mnemonicParsing="false" text="Open TD URI"
+											onAction="#handleMenuOpenTDURI" />
+										<SeparatorMenuItem></SeparatorMenuItem>
+										<MenuItem mnemonicParsing="false" text="Close"
+											onAction="#handleMenuClose" />
+									</items>
+								</Menu>
+							</menus>
+						</MenuBar>
+					</top>
+					<center>
+						<TextField fx:id="textFieldURI" text="http://localhost:8080/counter"></TextField>
+					</center>
+					<right>
+						<Button fx:id="button" onAction="#handleLoadTDURI" text="Load URI"></Button>
+					</right>
+				</BorderPane>
 			</top>
 			<center>
-				<TextField fx:id="textFieldURI"  text="http://localhost:8080/counter"></TextField>
-			</center>
-			<right>
-				<Button fx:id="button"  onAction="#handleLoadTDURI" text="Load URI"></Button>
-			</right>
-		</BorderPane>
-	</top>
-	<center>
-		<TabPane fx:id="tabPane">
+				<TabPane fx:id="tabPane">
 
-		</TabPane>
-	</center>
-</BorderPane>
+				</TabPane>
+			</center>
+		</BorderPane>
+	</children>
+</StackPane>
+
