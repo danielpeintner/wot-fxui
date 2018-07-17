@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -22,6 +23,8 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
 
+import io.thingweb.wot.fxui.JSONLD.Form;
+import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
 import io.thingweb.wot.fxui.client.Callback;
 import io.thingweb.wot.fxui.client.Client;
 import io.thingweb.wot.fxui.client.ClientFactory;
@@ -35,6 +38,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Side;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -43,6 +47,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -88,48 +93,19 @@ public class MainLayoutController {
 		textAreaLog.setText("[" + sdf.format(timestamp) + "] " + msg + "\n" + textAreaLog.getText());
 	}
 
-	protected String getInteractionHref(JsonObject joInteraction) {
+	protected String getInteractionHref(JsonObject joInteraction, String protocol) {
 		if (joInteraction.containsKey("forms") && joInteraction.get("forms").getValueType() == ValueType.ARRAY) {
 			JsonArray jaForms = joInteraction.get("forms").asJsonArray();
-			// List<Form> forms = JSONLD.getPropertyForms(jobj, propertyName);
-			if (jaForms.size() > 0) {
-				// TODO pick right form / mediaType
-				if (jaForms.get(0) != null && jaForms.get(0).getValueType() == ValueType.OBJECT) {
-					JsonObject joForm = jaForms.get(0).asJsonObject();
+			for(int i=0; i<jaForms.size(); i++) {
+				// pick right form / mediaType
+				if (jaForms.get(i) != null && jaForms.get(i).getValueType() == ValueType.OBJECT) {
+					JsonObject joForm = jaForms.get(i).asJsonObject();
 
 					if (joForm.containsKey("href") && joForm.get("href").getValueType() == ValueType.STRING) {
 						String href = joForm.getString("href");
-						return href;
-
-						// URI uri = new URI(href);
-						// Client client = cf.getClient(uri);
-						// System.out.println(client);
-						// Callback callback = new AbstractCallback() {
-						// @Override
-						// public void onGet(final String propertyName, Content
-						// response) {
-						// final String res = new String(response.getContent());
-						// Platform.runLater(
-						// new Runnable() {
-						// @Override
-						// public void run() {
-						// textFieldGET.setText(res);
-						// String msg = "Success: GET of " + propertyName + ": "
-						// + res;
-						// addLog(textAreaLog, msg);
-						// }
-						// });
-						// }
-						//
-						// @Override
-						// public void onGetError(String propertyName) {
-						// String msg = "Error: GET of " + propertyName + "
-						// failed";
-						// LOGGER.warning(msg);
-						// addLog(textAreaLog, msg);
-						// }
-						// };
-						// client.get(propertyName, uri, callback);
+						if(href.startsWith(protocol)) {
+							return href;
+						}
 					}
 				}
 
@@ -143,164 +119,263 @@ public class MainLayoutController {
 
 	protected void loadTD(final JsonObject jobj) {
 		Tab t = new Tab(JSONLD.getThingName(jobj));
-		GridPane gridPane = new GridPane();
-		gridPane.setHgap(10);
-		gridPane.setVgap(10);
-		gridPane.setPadding(new Insets(0, 10, 0, 10));
 
-		Window owner = borderPaneRoot.getScene().getWindow();
-		// gridPane.setPrefSize(owner.getWidth(), owner.getHeight()); // Default
-		// width and height
-		gridPane.prefWidthProperty().bind(owner.widthProperty().subtract(25));
-		// gridPane.setMaxSize(Region.USE_COMPUTED_SIZE,
-		// Region.USE_COMPUTED_SIZE);
+		TabPane tabPaneInner = new TabPane();
+		tabPaneInner.setSide(Side.BOTTOM);
+		tabPaneInner.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+		t.setContent(tabPaneInner);
 
-		gridPane.getColumnConstraints().add(new ColumnConstraints()); // 0
-		gridPane.getColumnConstraints().add(new ColumnConstraints()); // 1
-		ColumnConstraints column2 = new ColumnConstraints();
-		column2.setHgrow(Priority.ALWAYS);
-		gridPane.getColumnConstraints().add(column2); // 2
+		List<ProtocolMediaType> protocols = JSONLD.getProtocols(jobj);
+		for(ProtocolMediaType protocol : protocols) {
 
-		final TextArea textAreaLog = new TextArea();
-		textAreaLog.setEditable(false);
+			Tab ti = new Tab(protocol.toString());
+			tabPaneInner.getTabs().add(ti);
 
-		int row = 0;
-		// properties
-		{
-			JsonValue props = jobj.get("properties");
-			if (props != null && props.getValueType() == ValueType.OBJECT
-			// props.size() > 0
-			) {
-				JsonObject joProps = props.asJsonObject();
-				Set<String> keys = joProps.keySet();
+			GridPane gridPane = new GridPane();
+			gridPane.setHgap(10);
+			gridPane.setVgap(10);
+			gridPane.setPadding(new Insets(0, 10, 0, 10));
 
-				if (keys.size() > 0) {
-					Text category = new Text("Properties:");
-					category.setFont(FONT_CATEGORY);
-					gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
-															// colSpan, rowSpan
-					for (final String propertyName : keys) {
-						JsonValue jvProperty = joProps.get(propertyName);
-						if (jvProperty != null && jvProperty.getValueType() == ValueType.OBJECT) {
-							JsonObject joProperty = jvProperty.asJsonObject();
+			Window owner = borderPaneRoot.getScene().getWindow();
+			// gridPane.setPrefSize(owner.getWidth(), owner.getHeight()); // Default
+			// width and height
+			gridPane.prefWidthProperty().bind(owner.widthProperty().subtract(25));
+			// gridPane.setMaxSize(Region.USE_COMPUTED_SIZE,
+			// Region.USE_COMPUTED_SIZE);
 
-							Text textProp = new Text(propertyName + ":");
-							gridPane.add(textProp, 1, row);
-							GridPane.setHalignment(textProp, HPos.RIGHT);
+			gridPane.getColumnConstraints().add(new ColumnConstraints()); // 0
+			gridPane.getColumnConstraints().add(new ColumnConstraints()); // 1
+			ColumnConstraints column2 = new ColumnConstraints();
+			column2.setHgrow(Priority.ALWAYS);
+			gridPane.getColumnConstraints().add(column2); // 2
 
-							VBox vboxTextFields = new VBox();
-							//
-							final TextField textFieldGET = new TextField();
-							textFieldGET.setEditable(false);
-							textFieldGET.setDisable(true);
-							vboxTextFields.getChildren().add(textFieldGET);
+			final TextArea textAreaLog = new TextArea();
+			textAreaLog.setEditable(false);
 
-							//
+			int row = 0;
+			// properties
+			{
+				JsonValue props = jobj.get("properties");
+				if (props != null && props.getValueType() == ValueType.OBJECT) {
+					JsonObject joProps = props.asJsonObject();
+					Set<String> keys = joProps.keySet();
 
-							VBox vboxTextButtons = new VBox();
+					if (keys.size() > 0) {
+						Text category = new Text("Properties:");
+						category.setFont(FONT_CATEGORY);
+						gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
+																// colSpan, rowSpan
+						for (final String propertyName : keys) {
+							JsonValue jvProperty = joProps.get(propertyName);
+							if (jvProperty != null && jvProperty.getValueType() == ValueType.OBJECT) {
+								JsonObject joProperty = jvProperty.asJsonObject();
 
-							Button buttonGET = new Button("GET");
-							buttonGET.setOnAction(new EventHandler<ActionEvent>() {
-								@Override
-								public void handle(ActionEvent e) {
-									LOGGER.info("GET " + propertyName);
-									ClientFactory cf = new ClientFactory();
-									try {
-										String href = getInteractionHref(joProperty);
+								Text textProp = new Text(propertyName + ":");
+								gridPane.add(textProp, 1, row);
+								GridPane.setHalignment(textProp, HPos.RIGHT);
 
-										URI uri = new URI(href);
-										Client client = cf.getClient(uri);
-										System.out.println(client);
-										Callback callback = new AbstractCallback() {
-											@Override
-											public void onGet(final String propertyName, Content response) {
-												final String res = new String(response.getContent());
-												Platform.runLater(new Runnable() {
-													@Override
-													public void run() {
-														textFieldGET.setText(res);
-														String msg = "Success: GET of " + propertyName + ": " + res;
-														addLog(textAreaLog, msg);
-													}
-												});
-											}
-
-											@Override
-											public void onGetError(String propertyName) {
-												String msg = "Error: GET of " + propertyName + " failed";
-												LOGGER.warning(msg);
-												addLog(textAreaLog, msg);
-											}
-										};
-										client.get(propertyName, uri, callback);
-
-									} catch (Exception e1) {
-										// log error
-										String msg = "Error: " + e1.getMessage();
-										addLog(textAreaLog, msg);
-										e1.printStackTrace();
-									}
-								}
-							});
-
-							HBox hboxTextButtons = new HBox();
-							hboxTextButtons.getChildren().add(buttonGET);
-
-							// observable
-							if (joProperty.containsKey("observable")
-									&& joProperty.get("observable").getValueType() == ValueType.TRUE) {
-								ToggleButton tbObs = new ToggleButton("OBS");
-								hboxTextButtons.getChildren().add(tbObs);
-							}
-
-							vboxTextButtons.getChildren().add(hboxTextButtons);
-
-							// TODO writable
-							if (joProperty.containsKey("writeable")
-									&& joProperty.get("writeable").getValueType() == ValueType.TRUE) {
-								TextField textFieldPUT = new TextField();
-								vboxTextFields.getChildren().add(textFieldPUT);
+								VBox vboxTextFields = new VBox();
+								//
+								final TextField textFieldGET = new TextField();
+								textFieldGET.setEditable(false);
+								textFieldGET.setDisable(true);
+								vboxTextFields.getChildren().add(textFieldGET);
 
 								//
-								Button buttonPUT = new Button("PUT");
-								buttonPUT.setOnAction(new EventHandler<ActionEvent>() {
+
+								VBox vboxTextButtons = new VBox();
+								String href = getInteractionHref(joProperty, protocol.protocol);
+
+								if(href != null) {
+
+									Button buttonGET = new Button("GET");
+									buttonGET.setOnAction(new EventHandler<ActionEvent>() {
+										@Override
+										public void handle(ActionEvent e) {
+											LOGGER.info("GET " + propertyName);
+											ClientFactory cf = new ClientFactory();
+											try {
+
+
+												URI uri = new URI(href);
+												Client client = cf.getClient(uri);
+												System.out.println(client);
+												Callback callback = new AbstractCallback() {
+													@Override
+													public void onGet(final String propertyName, Content response) {
+														final String res = new String(response.getContent());
+														Platform.runLater(new Runnable() {
+															@Override
+															public void run() {
+																textFieldGET.setText(res);
+																String msg = "Success: GET of " + propertyName + ": " + res;
+																addLog(textAreaLog, msg);
+															}
+														});
+													}
+
+													@Override
+													public void onGetError(String propertyName) {
+														String msg = "Error: GET of " + propertyName + " failed";
+														LOGGER.warning(msg);
+														addLog(textAreaLog, msg);
+													}
+												};
+												client.get(propertyName, uri, callback);
+
+											} catch (Exception e1) {
+												// log error
+												String msg = "Error: " + e1.getMessage();
+												addLog(textAreaLog, msg);
+												e1.printStackTrace();
+											}
+										}
+									});
+
+									HBox hboxTextButtons = new HBox();
+									hboxTextButtons.getChildren().add(buttonGET);
+
+									// observable
+									if (joProperty.containsKey("observable")
+											&& joProperty.get("observable").getValueType() == ValueType.TRUE) {
+										ToggleButton tbObs = new ToggleButton("OBS");
+										hboxTextButtons.getChildren().add(tbObs);
+									}
+
+									vboxTextButtons.getChildren().add(hboxTextButtons);
+
+									// TODO writable
+									if (joProperty.containsKey("writeable")
+											&& joProperty.get("writeable").getValueType() == ValueType.TRUE) {
+										TextField textFieldPUT = new TextField();
+										vboxTextFields.getChildren().add(textFieldPUT);
+
+										//
+										Button buttonPUT = new Button("PUT");
+										buttonPUT.setOnAction(new EventHandler<ActionEvent>() {
+											@Override
+											public void handle(ActionEvent e) {
+												LOGGER.info("PUT " + propertyName);
+
+												ClientFactory cf = new ClientFactory();
+												try {
+													// String href = getInteractionHref(joProperty);
+
+													URI uri = new URI(href);
+													Client client = cf.getClient(uri);
+													System.out.println(client);
+													Callback callback = new AbstractCallback() {
+														@Override
+														public void onPut(final String propertyName, Content response) {
+															final String res = new String(response.getContent());
+															Platform.runLater(new Runnable() {
+																@Override
+																public void run() {
+																	textFieldGET.setText(res);
+																	String msg = "Success: PUT of " + propertyName + ": " + res;
+																	addLog(textAreaLog, msg);
+																}
+															});
+														}
+
+														@Override
+														public void onPutError(String propertyName, String message) {
+															String msg = "Error: PUT of " + propertyName + " failed: "
+																	+ message;
+															LOGGER.warning(msg);
+															addLog(textAreaLog, msg);
+														}
+													};
+													// TODO mediaType
+													Content propertyValue = new Content(textFieldPUT.getText().getBytes(),
+															MediaType.APPLICATION_JSON);
+													client.put(propertyName, uri, propertyValue, callback);
+												} catch (Exception e1) {
+													// log error
+													String msg = "Error: " + e1.getMessage();
+													addLog(textAreaLog, msg);
+													e1.printStackTrace();
+												}
+
+											}
+										});
+										vboxTextButtons.getChildren().add(buttonPUT);
+									}
+
+									gridPane.add(vboxTextFields, 2, row);
+									gridPane.add(vboxTextButtons, 3, row);
+
+									row++;
+
+								}
+							} else {
+								LOGGER.warning("Property value not object or null");
+							}
+						}
+					}
+				}
+			}
+
+			// actions
+			{
+				JsonValue actions = jobj.get("actions");
+				if (actions != null && actions.getValueType() == ValueType.OBJECT) {
+					JsonObject joActions = actions.asJsonObject();
+					Set<String> keys = joActions.keySet();
+
+					if (keys.size() > 0) {
+						Text category = new Text("Actions:");
+						category.setFont(FONT_CATEGORY);
+						gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
+																// colSpan, rowSpan
+						for (final String actionName : keys) {
+							JsonValue jvAction = joActions.get(actionName);
+							if (jvAction != null && jvAction.getValueType() == ValueType.OBJECT) {
+								JsonObject joAction = jvAction.asJsonObject();
+
+								Text textProp = new Text(actionName + ":");
+								gridPane.add(textProp, 1, row);
+								GridPane.setHalignment(textProp, HPos.RIGHT);
+
+								Button buttonPOST = new Button("POST");
+								buttonPOST.setOnAction(new EventHandler<ActionEvent>() {
 									@Override
 									public void handle(ActionEvent e) {
-										LOGGER.info("PUT " + propertyName);
+										LOGGER.info("POST " + actionName);
 
 										ClientFactory cf = new ClientFactory();
 										try {
-											String href = getInteractionHref(joProperty);
-
+											String href = getInteractionHref(joAction, protocol.protocol);
+											// List<Form> forms =
+											// JSONLD.getActionForms(jobj,
+											// actionName);
+											// if(forms.size() > 0) {
+											// URI uri = new URI(forms.get(0).href);
 											URI uri = new URI(href);
 											Client client = cf.getClient(uri);
 											System.out.println(client);
 											Callback callback = new AbstractCallback() {
+
 												@Override
-												public void onPut(final String propertyName, Content response) {
-													final String res = new String(response.getContent());
-													Platform.runLater(new Runnable() {
-														@Override
-														public void run() {
-															textFieldGET.setText(res);
-															String msg = "Success: PUT of " + propertyName + ": " + res;
-															addLog(textAreaLog, msg);
-														}
-													});
+												public void onAction(String actionName, Content response) {
+													String res = new String(response.getContent());
+													// TODO response
+													// textFieldPOST.setText(res);
+													String msg = "Success: POST of " + actionName + ": " + res;
+													addLog(textAreaLog, msg);
 												}
 
 												@Override
-												public void onPutError(String propertyName, String message) {
-													String msg = "Error: PUT of " + propertyName + " failed: "
-															+ message;
+												public void onActionError(String actionName) {
+													String msg = "Error: POST of " + actionName + " failed";
 													LOGGER.warning(msg);
 													addLog(textAreaLog, msg);
 												}
 											};
-											// TODO mediaType
-											Content propertyValue = new Content(textFieldPUT.getText().getBytes(),
-													MediaType.APPLICATION_JSON);
-											client.put(propertyName, uri, propertyValue, callback);
+											// TODO action value
+											Content actionValue = new Content(new byte[0], MediaType.APPLICATION_JSON);
+											client.action(actionName, uri, actionValue, callback);
+											// }
 										} catch (Exception e1) {
 											// log error
 											String msg = "Error: " + e1.getMessage();
@@ -310,132 +385,53 @@ public class MainLayoutController {
 
 									}
 								});
-								vboxTextButtons.getChildren().add(buttonPUT);
+
+								gridPane.add(buttonPOST, 3, row);
+
+								row++;
 							}
-
-							gridPane.add(vboxTextFields, 2, row);
-							gridPane.add(vboxTextButtons, 3, row);
-
-							row++;
-						} else {
-							LOGGER.warning("Property value not object or null");
 						}
 					}
 				}
 			}
+
+			// // events
+			// {
+			// List<String> events = JSONLD.getEvents(jobj);
+			// if(events != null && events.size() > 0) {
+			// Text category = new Text("Events:");
+			// category.setFont(FONT_CATEGORY);
+			// gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx, colSpan,
+			// rowSpan
+			// for(String ev : events) {
+			// Text textProp = new Text(ev + ":");
+			// gridPane.add(textProp, 1, row++);
+			// GridPane.setHalignment(textProp, HPos.RIGHT);
+			// }
+			// }
+			// }
+
+			ScrollPane scrollPane = new ScrollPane();
+			scrollPane.setContent(gridPane);
+
+			SplitPane splitPane = new SplitPane();
+			splitPane.setOrientation(Orientation.VERTICAL);
+			splitPane.setDividerPositions(0.7);
+			splitPane.getItems().add(scrollPane);
+
+			splitPane.getItems().add(textAreaLog);
+			// BorderPane bp = new BorderPane();
+			// bp.setCenter(scrollPane);
+			// bp.setBottom(new TextArea());
+
+			ti.setContent(splitPane);
 		}
 
-		// actions
-		{
-			JsonValue actions = jobj.get("actions");
-			if (actions != null && actions.getValueType() == ValueType.OBJECT
-			// props.size() > 0
-			) {
-				JsonObject joActions = actions.asJsonObject();
-				Set<String> keys = joActions.keySet();
 
-				if (keys.size() > 0) {
-					Text category = new Text("Actions:");
-					category.setFont(FONT_CATEGORY);
-					gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
-															// colSpan, rowSpan
-					for (final String actionName : keys) {
-						JsonValue jvAction = joActions.get(actionName);
-						if (jvAction != null && jvAction.getValueType() == ValueType.OBJECT) {
-							JsonObject joAction = jvAction.asJsonObject();
 
-							Text textProp = new Text(actionName + ":");
-							gridPane.add(textProp, 1, row);
-							GridPane.setHalignment(textProp, HPos.RIGHT);
 
-							Button buttonPOST = new Button("POST");
-							buttonPOST.setOnAction(new EventHandler<ActionEvent>() {
-								@Override
-								public void handle(ActionEvent e) {
-									LOGGER.info("POST " + actionName);
 
-									ClientFactory cf = new ClientFactory();
-									try {
-										String href = getInteractionHref(joAction);
-										// List<Form> forms =
-										// JSONLD.getActionForms(jobj,
-										// actionName);
-										// if(forms.size() > 0) {
-										// URI uri = new URI(forms.get(0).href);
-										URI uri = new URI(href);
-										Client client = cf.getClient(uri);
-										System.out.println(client);
-										Callback callback = new AbstractCallback() {
-
-											@Override
-											public void onAction(String actionName, Content response) {
-												String res = new String(response.getContent());
-												// TODO response
-												// textFieldPOST.setText(res);
-												String msg = "Success: POST of " + actionName + ": " + res;
-												addLog(textAreaLog, msg);
-											}
-
-											@Override
-											public void onActionError(String actionName) {
-												String msg = "Error: POST of " + actionName + " failed";
-												LOGGER.warning(msg);
-												addLog(textAreaLog, msg);
-											}
-										};
-										// TODO action value
-										Content actionValue = new Content(new byte[0], MediaType.APPLICATION_JSON);
-										client.action(actionName, uri, actionValue, callback);
-										// }
-									} catch (Exception e1) {
-										// log error
-										String msg = "Error: " + e1.getMessage();
-										addLog(textAreaLog, msg);
-										e1.printStackTrace();
-									}
-
-								}
-							});
-
-							gridPane.add(buttonPOST, 3, row);
-
-							row++;
-						}
-					}
-				}
-			}
-		}
-
-		// // events
-		// {
-		// List<String> events = JSONLD.getEvents(jobj);
-		// if(events != null && events.size() > 0) {
-		// Text category = new Text("Events:");
-		// category.setFont(FONT_CATEGORY);
-		// gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx, colSpan,
-		// rowSpan
-		// for(String ev : events) {
-		// Text textProp = new Text(ev + ":");
-		// gridPane.add(textProp, 1, row++);
-		// GridPane.setHalignment(textProp, HPos.RIGHT);
-		// }
-		// }
-		// }
-
-		ScrollPane scrollPane = new ScrollPane();
-		scrollPane.setContent(gridPane);
-
-		SplitPane splitPane = new SplitPane();
-		splitPane.setOrientation(Orientation.VERTICAL);
-		splitPane.setDividerPositions(0.7);
-		splitPane.getItems().add(scrollPane);
-
-		splitPane.getItems().add(textAreaLog);
-		// BorderPane bp = new BorderPane();
-		// bp.setCenter(scrollPane);
-		// bp.setBottom(new TextArea());
-
-		t.setContent(splitPane);
+		// t.setContent(splitPane);
 		tabPane.getTabs().add(t);
 		tabPane.getSelectionModel().select(t);
 	}
