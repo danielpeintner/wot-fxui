@@ -1,8 +1,6 @@
 package io.thingweb.wot.fxui;
 
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +13,16 @@ import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 
 public class JSONLD {
+
+	public static String KEY_PROPERTIES = "properties";
+	public static String KEY_ACTIONS = "actions";
+	public static String KEY_EVENTS = "events";
+
+	public static String KEY_FORMS = "forms";
+	public static String KEY_HREF = "href";
+
+	public static String KEY_WRITABLE = "writable";
+	public static String KEY_OBSERVABLE = "observable";
 
 	public static class Form {
 		public final String href;

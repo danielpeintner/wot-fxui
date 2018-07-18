@@ -94,15 +94,15 @@ public class MainLayoutController {
 	}
 
 	protected String getInteractionHref(JsonObject joInteraction, String protocol) {
-		if (joInteraction.containsKey("forms") && joInteraction.get("forms").getValueType() == ValueType.ARRAY) {
-			JsonArray jaForms = joInteraction.get("forms").asJsonArray();
+		if (joInteraction.containsKey(JSONLD.KEY_FORMS) && joInteraction.get(JSONLD.KEY_FORMS).getValueType() == ValueType.ARRAY) {
+			JsonArray jaForms = joInteraction.get(JSONLD.KEY_FORMS).asJsonArray();
 			for(int i=0; i<jaForms.size(); i++) {
 				// pick right form / mediaType
 				if (jaForms.get(i) != null && jaForms.get(i).getValueType() == ValueType.OBJECT) {
 					JsonObject joForm = jaForms.get(i).asJsonObject();
 
-					if (joForm.containsKey("href") && joForm.get("href").getValueType() == ValueType.STRING) {
-						String href = joForm.getString("href");
+					if (joForm.containsKey(JSONLD.KEY_HREF) && joForm.get(JSONLD.KEY_HREF).getValueType() == ValueType.STRING) {
+						String href = joForm.getString(JSONLD.KEY_HREF);
 						if(href.startsWith(protocol)) {
 							return href;
 						}
@@ -155,7 +155,7 @@ public class MainLayoutController {
 			int row = 0;
 			// properties
 			{
-				JsonValue props = jobj.get("properties");
+				JsonValue props = jobj.get(JSONLD.KEY_PROPERTIES);
 				if (props != null && props.getValueType() == ValueType.OBJECT) {
 					JsonObject joProps = props.asJsonObject();
 					Set<String> keys = joProps.keySet();
@@ -236,17 +236,17 @@ public class MainLayoutController {
 									hboxTextButtons.getChildren().add(buttonGET);
 
 									// observable
-									if (joProperty.containsKey("observable")
-											&& joProperty.get("observable").getValueType() == ValueType.TRUE) {
+									if (joProperty.containsKey(JSONLD.KEY_OBSERVABLE)
+											&& joProperty.get(JSONLD.KEY_OBSERVABLE).getValueType() == ValueType.TRUE) {
 										ToggleButton tbObs = new ToggleButton("OBS");
 										hboxTextButtons.getChildren().add(tbObs);
 									}
 
 									vboxTextButtons.getChildren().add(hboxTextButtons);
 
-									// TODO writable
-									if (joProperty.containsKey("writeable")
-											&& joProperty.get("writeable").getValueType() == ValueType.TRUE) {
+									// writable
+									if (joProperty.containsKey(JSONLD.KEY_WRITABLE)
+											&& joProperty.get(JSONLD.KEY_WRITABLE).getValueType() == ValueType.TRUE) {
 										TextField textFieldPUT = new TextField();
 										vboxTextFields.getChildren().add(textFieldPUT);
 
@@ -318,7 +318,7 @@ public class MainLayoutController {
 
 			// actions
 			{
-				JsonValue actions = jobj.get("actions");
+				JsonValue actions = jobj.get(JSONLD.KEY_ACTIONS);
 				if (actions != null && actions.getValueType() == ValueType.OBJECT) {
 					JsonObject joActions = actions.asJsonObject();
 					Set<String> keys = joActions.keySet();
