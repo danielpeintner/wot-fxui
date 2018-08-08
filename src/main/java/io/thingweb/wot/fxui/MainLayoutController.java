@@ -463,10 +463,10 @@ public class MainLayoutController {
 				// TODO coap scheme use californium
 
 				URL url = uri.toURL(); // get URL from your uri object
-				InputStream istream = url.openStream();
-
-				JsonObject jobj = JSONLD.parseJSON(istream);
-				loadTD(jobj);
+				try(InputStream istream = url.openStream()) {
+					JsonObject jobj = JSONLD.parseJSON(istream);
+					loadTD(jobj);
+				}
 			}
 
 			// // Note: jpro does not allow showAndWaits etc
@@ -508,10 +508,10 @@ public class MainLayoutController {
 			// TODO coap scheme use californium
 
 			URL url = uri.toURL(); // get URL from your uri object
-			InputStream istream = url.openStream();
-
-			JsonObject jobj = JSONLD.parseJSON(istream);
-			loadTD(jobj);
+			try(InputStream istream = url.openStream()) {
+				JsonObject jobj = JSONLD.parseJSON(istream);
+				loadTD(jobj);
+			}
 		} catch (Exception e) {
 			LOGGER.severe(e.getMessage());
 			showAlertDialog(e);
@@ -526,8 +526,10 @@ public class MainLayoutController {
 			File f = fc.showOpenDialog(owner);
 			if (f != null) {
 				LOGGER.info("Load file: " + f);
-				JsonObject jobj = JSONLD.parseJSON(new FileInputStream(f));
-				loadTD(jobj);
+				try(FileInputStream fis = new FileInputStream(f)) {
+					JsonObject jobj = JSONLD.parseJSON(fis);
+					loadTD(jobj);
+				}
 			}
 		} catch (Exception e) {
 			LOGGER.severe(e.getMessage());

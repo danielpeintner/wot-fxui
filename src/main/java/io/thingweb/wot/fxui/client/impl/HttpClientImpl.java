@@ -113,29 +113,29 @@ public class HttpClientImpl extends AbstractClientImpl {
 					httpCon.setRequestProperty("Authorization", "Bearer " + securityAsToken);
 				}
 
-				InputStream is = httpCon.getInputStream();
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				int b;
-				while ((b = is.read()) != -1) {
-					baos.write(b);
+				try(InputStream is = httpCon.getInputStream()) {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					int b;
+					while ((b = is.read()) != -1) {
+						baos.write(b);
+					}
+
+					String contentType = httpCon.getHeaderField("content-type");
+					MediaType mediaType = MediaType.getMediaType(contentType);
+
+					int responseCode = httpCon.getResponseCode();
+
+					httpCon.disconnect();
+
+					Content c = new Content(baos.toByteArray(), mediaType);
+
+					if (responseCode == 200) {
+						callback.onGet(propertyName, c);
+					} else {
+						// error
+						error(new RuntimeException("ResponseCode==" + responseCode));
+					}
 				}
-
-				String contentType = httpCon.getHeaderField("content-type");
-				MediaType mediaType = MediaType.getMediaType(contentType);
-
-				int responseCode = httpCon.getResponseCode();
-
-				httpCon.disconnect();
-
-				Content c = new Content(baos.toByteArray(), mediaType);
-
-				if (responseCode == 200) {
-					callback.onGet(propertyName, c);
-				} else {
-					// error
-					error(new RuntimeException("ResponseCode==" + responseCode));
-				}
-
 			} catch (Exception e) {
 				error(e);
 			}
@@ -187,33 +187,34 @@ public class HttpClientImpl extends AbstractClientImpl {
 				out.write(propertyValue.getContent());
 				out.close();
 
-				InputStream is = httpCon.getInputStream();
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				int b;
-				while ((b = is.read()) != -1) {
-					baos.write(b);
-				}
-
-				String contentType = httpCon.getHeaderField("content-type");
-				MediaType mediaType = MediaType.getMediaType(contentType);
-
-				int responseCode = httpCon.getResponseCode();
-
-				httpCon.disconnect();
-
-				Content c = new Content(baos.toByteArray(), mediaType);
-
-				// TODO generally all 2xx are success?
-				// 204 No Content
-				if (responseCode == 200 || responseCode == 204) {
-					if(!isAction) {
-						callback.onPut(name,  c);
-					} else {
-						callback.onAction(name, c);
+				try(InputStream is = httpCon.getInputStream()) {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					int b;
+					while ((b = is.read()) != -1) {
+						baos.write(b);
 					}
-				} else {
-					// error
-					error(new RuntimeException("ResponseCode==" + responseCode));
+
+					String contentType = httpCon.getHeaderField("content-type");
+					MediaType mediaType = MediaType.getMediaType(contentType);
+
+					int responseCode = httpCon.getResponseCode();
+
+					httpCon.disconnect();
+
+					Content c = new Content(baos.toByteArray(), mediaType);
+
+					// TODO generally all 2xx are success?
+					// 204 No Content
+					if (responseCode == 200 || responseCode == 204) {
+						if(!isAction) {
+							callback.onPut(name,  c);
+						} else {
+							callback.onAction(name, c);
+						}
+					} else {
+						// error
+						error(new RuntimeException("ResponseCode==" + responseCode));
+					}
 				}
 			} catch (Exception e) {
 				error(e);

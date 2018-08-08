@@ -11,8 +11,9 @@ public class JSONLDTest {
 
 	@Test
 	public void testCounter() throws IOException {
-		InputStream is = JSONLDTest.class.getResource("/td-counter.jsonld").openStream();
-		JsonObject jobj = JSONLD.parseJSON(is);
+		try(InputStream is = JSONLDTest.class.getResource("/td-counter.jsonld").openStream()) {
+			JsonObject jobj = JSONLD.parseJSON(is);
+		}
 	}
 
 }

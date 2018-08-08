@@ -78,12 +78,12 @@ public class JSONLD {
 
 
 	public static JsonObject parseJSON(InputStream is) {
-		JsonReader rdr = Json.createReader(is);
+		try(JsonReader rdr = Json.createReader(is)) {
+			JsonObject obj = rdr.readObject();
+			// TODO sanitize JSON
 
-		JsonObject obj = rdr.readObject();
-		// TODO sanitize JSON
-
-		return obj;
+			return obj;
+		}
 	}
 
 	public static String getThingName(JsonObject jobj) {
