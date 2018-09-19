@@ -9,10 +9,15 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- 
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<!-- Java version -->
 		<java.version>1.8</java.version>
+		 -->
+        <!---->
+		<maven.compiler.source>10</maven.compiler.source>
+		<maven.compiler.target>10</maven.compiler.target>
+		<java.version>10</java.version>
 	</properties>
 
 	<dependencies>
@@ -37,7 +42,8 @@
 		<dependency>
 			<groupId>com.jfoenix</groupId>
 			<artifactId>jfoenix</artifactId>
-			<version>8.0.5</version>
+			<!-- <version>8.0.5</version> --><!-- JAVA 8 -->
+			<version>9.0.6</version><!-- JAVA 9+ -->
 		</dependency>
 
 		<!-- test dependencies -->
@@ -58,10 +64,14 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
+				<version>3.8.0</version>
 				<configuration>
+					<!--
 					<source>${java.version}</source>
 					<target>${java.version}</target>
+					-->
+					<!---->
+					<release>11</release>
 					<showWarnings>true</showWarnings>
 					<showDeprecation>true</showDeprecation>
 				</configuration>

@@ -23,7 +23,6 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
 
-import io.thingweb.wot.fxui.JSONLD.Form;
 import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
 import io.thingweb.wot.fxui.client.Callback;
 import io.thingweb.wot.fxui.client.Client;

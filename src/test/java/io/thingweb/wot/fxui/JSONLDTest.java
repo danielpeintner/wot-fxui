@@ -12,6 +12,7 @@ public class JSONLDTest {
 	@Test
 	public void testCounter() throws IOException {
 		try(InputStream is = JSONLDTest.class.getResource("/td-counter.jsonld").openStream()) {
+			@SuppressWarnings("unused")
 			JsonObject jobj = JSONLD.parseJSON(is);
 		}
 	}
