@@ -128,6 +128,7 @@ public class MainLayoutController {
 		for(ProtocolMediaType protocol : protocols) {
 
 			Tab ti = new Tab(protocol.toString());
+			
 			tabPaneInner.getTabs().add(ti);
 
 			GridPane gridPane = new GridPane();
@@ -138,7 +139,7 @@ public class MainLayoutController {
 			Window owner = borderPaneRoot.getScene().getWindow();
 			// gridPane.setPrefSize(owner.getWidth(), owner.getHeight()); // Default
 			// width and height
-			gridPane.prefWidthProperty().bind(owner.widthProperty().subtract(25));
+			gridPane.prefWidthProperty().bind(owner.widthProperty().subtract(25+15+15));
 			// gridPane.setMaxSize(Region.USE_COMPUTED_SIZE,
 			// Region.USE_COMPUTED_SIZE);
 
@@ -412,6 +413,7 @@ public class MainLayoutController {
 
 			ScrollPane scrollPane = new ScrollPane();
 			scrollPane.setContent(gridPane);
+			scrollPane.setPadding(new Insets(15, 15, 15, 15));
 
 			SplitPane splitPane = new SplitPane();
 			splitPane.setOrientation(Orientation.VERTICAL);
@@ -422,7 +424,9 @@ public class MainLayoutController {
 			// BorderPane bp = new BorderPane();
 			// bp.setCenter(scrollPane);
 			// bp.setBottom(new TextArea());
-
+			// 
+			
+			
 			ti.setContent(splitPane);
 		}
 
@@ -435,70 +439,70 @@ public class MainLayoutController {
 		tabPane.getSelectionModel().select(t);
 	}
 
-	@FXML
-	protected void handleMenuOpenTDURI(ActionEvent event) {
-		try {
-			// http://code.makery.ch/blog/javafx-8-dialogs/
-			// Dialogs.create()
-			// .owner(stage)
-			// .title("Information Dialog")
-			// .masthead("Look, an Information Dialog")
-			// .message("I have a great message for you!")
-			// .showInformation();
-			//
-			// ExceptionDialog ed = new ExceptionDialog(new
-			// RuntimeException("XX"));
-			// ed.show();
-
-			TextInputDialog dialog = new TextInputDialog("http://localhost:8080/counter");
-			dialog.setTitle("URI Input Dialog");
-			dialog.setHeaderText("Input Dialog for URI");
-			dialog.setContentText("Please enter URI:");
-
-			// Traditional way to get the response value.
-			Optional<String> result = dialog.showAndWait();
-			if (result.isPresent()) {
-				URI uri = new URI(result.get());
-				// TODO coap scheme use californium
-
-				URL url = uri.toURL(); // get URL from your uri object
-				try(InputStream istream = url.openStream()) {
-					JsonObject jobj = JSONLD.parseJSON(istream);
-					loadTD(jobj);
-				}
-			}
-
-			// // Note: jpro does not allow showAndWaits etc
-			// // https://www.jpro.one/?page=docs/current/1.8/JPRO%20CHECKLIST
-			// dialog.show();
-			//
-			// dialog.resultProperty().addListener(new ChangeListener<String>()
-			// {
-			// @Override
-			// public void changed(ObservableValue<? extends String> observable,
-			// String oldValue, String newValue) {
-			// try {
-			// LOGGER.info("changed to: " + newValue);
-			// URI uri = new URI(newValue);
-			// // TODO coap scheme use californium
-			//
-			// URL url = uri.toURL(); //get URL from your uri object
-			// InputStream istream = url.openStream();
-			//
-			// JsonObject jobj = JSONLD.parseJSON(istream);
-			// loadTD(jobj);
-			// } catch (Exception e) {
-			// LOGGER.severe(e.getMessage());
-			// showAlertDialog(e);
-			// }
-			// }
-			// });
-
-		} catch (Exception e) {
-			LOGGER.severe(e.getMessage());
-			showAlertDialog(e);
-		}
-	}
+//	@FXML
+//	protected void handleMenuOpenTDURI(ActionEvent event) {
+//		try {
+//			// http://code.makery.ch/blog/javafx-8-dialogs/
+//			// Dialogs.create()
+//			// .owner(stage)
+//			// .title("Information Dialog")
+//			// .masthead("Look, an Information Dialog")
+//			// .message("I have a great message for you!")
+//			// .showInformation();
+//			//
+//			// ExceptionDialog ed = new ExceptionDialog(new
+//			// RuntimeException("XX"));
+//			// ed.show();
+//
+//			TextInputDialog dialog = new TextInputDialog("http://localhost:8080/counter");
+//			dialog.setTitle("URI Input Dialog");
+//			dialog.setHeaderText("Input Dialog for URI");
+//			dialog.setContentText("Please enter URI:");
+//
+//			// Traditional way to get the response value.
+//			Optional<String> result = dialog.showAndWait();
+//			if (result.isPresent()) {
+//				URI uri = new URI(result.get());
+//				// TODO coap scheme use californium
+//
+//				URL url = uri.toURL(); // get URL from your uri object
+//				try(InputStream istream = url.openStream()) {
+//					JsonObject jobj = JSONLD.parseJSON(istream);
+//					loadTD(jobj);
+//				}
+//			}
+//
+//			// // Note: jpro does not allow showAndWaits etc
+//			// // https://www.jpro.one/?page=docs/current/1.8/JPRO%20CHECKLIST
+//			// dialog.show();
+//			//
+//			// dialog.resultProperty().addListener(new ChangeListener<String>()
+//			// {
+//			// @Override
+//			// public void changed(ObservableValue<? extends String> observable,
+//			// String oldValue, String newValue) {
+//			// try {
+//			// LOGGER.info("changed to: " + newValue);
+//			// URI uri = new URI(newValue);
+//			// // TODO coap scheme use californium
+//			//
+//			// URL url = uri.toURL(); //get URL from your uri object
+//			// InputStream istream = url.openStream();
+//			//
+//			// JsonObject jobj = JSONLD.parseJSON(istream);
+//			// loadTD(jobj);
+//			// } catch (Exception e) {
+//			// LOGGER.severe(e.getMessage());
+//			// showAlertDialog(e);
+//			// }
+//			// }
+//			// });
+//
+//		} catch (Exception e) {
+//			LOGGER.severe(e.getMessage());
+//			showAlertDialog(e);
+//		}
+//	}
 
 	@FXML
 	protected void handleLoadTDURI(ActionEvent event) {
@@ -517,24 +521,24 @@ public class MainLayoutController {
 		}
 	}
 
-	@FXML
-	protected void handleMenuOpenTDFile(ActionEvent event) {
-		try {
-			Window owner = borderPaneRoot.getScene().getWindow();
-			FileChooser fc = new FileChooser();
-			File f = fc.showOpenDialog(owner);
-			if (f != null) {
-				LOGGER.info("Load file: " + f);
-				try(FileInputStream fis = new FileInputStream(f)) {
-					JsonObject jobj = JSONLD.parseJSON(fis);
-					loadTD(jobj);
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.severe(e.getMessage());
-			showAlertDialog(e);
-		}
-	}
+//	@FXML
+//	protected void handleMenuOpenTDFile(ActionEvent event) {
+//		try {
+//			Window owner = borderPaneRoot.getScene().getWindow();
+//			FileChooser fc = new FileChooser();
+//			File f = fc.showOpenDialog(owner);
+//			if (f != null) {
+//				LOGGER.info("Load file: " + f);
+//				try(FileInputStream fis = new FileInputStream(f)) {
+//					JsonObject jobj = JSONLD.parseJSON(fis);
+//					loadTD(jobj);
+//				}
+//			}
+//		} catch (Exception e) {
+//			LOGGER.severe(e.getMessage());
+//			showAlertDialog(e);
+//		}
+//	}
 
 	public void showAlertDialog(Exception e) {
 		showAlertDialog(e, "");
@@ -592,8 +596,8 @@ public class MainLayoutController {
 		}
 	}
 
-	@FXML
-	protected void handleMenuClose(ActionEvent event) {
-		System.exit(0);
-	}
+//	@FXML
+//	protected void handleMenuClose(ActionEvent event) {
+//		System.exit(0);
+//	}
 }

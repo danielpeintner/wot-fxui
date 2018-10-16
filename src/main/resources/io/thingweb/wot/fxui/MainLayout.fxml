@@ -1,53 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.SeparatorMenuItem?>
-<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.VBox?>
 
-<StackPane fx:id="stackPaneRoot" xmlns:fx="http://javafx.com/fxml/1"
-	xmlns="http://javafx.com/javafx/8.0.141" fx:controller="io.thingweb.wot.fxui.MainLayoutController">
+<StackPane fx:id="stackPaneRoot"
+	xmlns="http://javafx.com/javafx/8.0.171"
+	xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="io.thingweb.wot.fxui.MainLayoutController">
 	<children>
 		<BorderPane fx:id="borderPaneRoot">
 			<top>
-				<BorderPane>
-					<top>
-						<MenuBar BorderPane.alignment="CENTER">
-							<menus>
-								<Menu mnemonicParsing="false" text="File">
-									<items>
-										<MenuItem mnemonicParsing="false" text="Open TD File"
-											onAction="#handleMenuOpenTDFile" />
-										<MenuItem mnemonicParsing="false" text="Open TD URI"
-											onAction="#handleMenuOpenTDURI" />
-										<SeparatorMenuItem></SeparatorMenuItem>
-										<MenuItem mnemonicParsing="false" text="Close"
-											onAction="#handleMenuClose" />
-									</items>
-								</Menu>
-							</menus>
-						</MenuBar>
-					</top>
-					<center>
-						<TextField fx:id="textFieldURI" text="http://localhost:8080/counter"></TextField>
-					</center>
-					<right>
-						<Button fx:id="button" onAction="#handleLoadTDURI" text="Load URI"></Button>
-					</right>
-				</BorderPane>
 			</top>
 			<center>
-				<TabPane fx:id="tabPane">
-
+				<TabPane fx:id="tabPane" prefHeight="377.0"
+					prefWidth="583.0">
+					<tabs>
+						<Tab closable="false" text="START">
+							<BorderPane>
+								<padding>
+									<Insets bottom="15" left="15" right="15" top="15" />
+								</padding>
+								<top>
+									<VBox>
+										<children>
+											<Label text="Possible URIs which can be loaded are:" />
+											<Label text="* http://localhost:8080/counter" />
+											<Label text="* file:///C:/Temp/counter.jsonld" />
+											<Label text="" />
+										</children>
+									</VBox>
+								</top>
+								<center>
+									<GridPane>
+										<children>
+											<TextField fx:id="textFieldURI"
+												text="http://localhost:8080/counter" GridPane.hgrow="ALWAYS" />
+											<Button fx:id="button" onAction="#handleLoadTDURI"
+												text="Load URI" GridPane.columnIndex="1"
+												GridPane.halignment="RIGHT"  />
+										</children>
+									</GridPane>
+								</center>
+							</BorderPane>
+						</Tab>
+					</tabs>
 				</TabPane>
 			</center>
 		</BorderPane>
 	</children>
 </StackPane>
-
