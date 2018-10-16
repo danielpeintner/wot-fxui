@@ -12,15 +12,17 @@ mvn jfx:native
 ### Desktop
 
 ```
-gradle run
+gradle -b jfxmobile.gradle run
 ```
 
 ### Android
 
+
+
 ```
-gradle android /* generates an apk that is signed with a debug keystore and put it in the directorybuild/javafxports/android */
-gradle androidRelease /* generates an apk that is signed with the configured signingConfig and put it in the directorybuild/javafxports/android  */
-gradle androidInstall /* installs the generated debug apk onto a device that is connected to your desktop  */
+gradle -b jfxmobile.gradle android /* generates an apk that is signed with a debug keystore and put it in the directorybuild/javafxports/android */
+gradle -b jfxmobile.gradle androidRelease /* generates an apk that is signed with the configured signingConfig and put it in the directorybuild/javafxports/android  */
+gradle -b jfxmobile.gradle androidInstall /* installs the generated debug apk onto a device that is connected to your desktop  */
 ```
 
 ### Web Browser
@@ -28,14 +30,14 @@ gradle androidInstall /* installs the generated debug apk onto a device that is 
 #### Start in foreground (development mode) ###
 
 ```
-./gradlew jproRun
+./gradlew -b jpro.gradle jproRun
 ```
 
 
 #### Start in background (server mode) ###
 
 ```
-./gradlew jproRestart
+./gradlew -b jpro.gradle jproRestart
 ```
 
 
