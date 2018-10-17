@@ -12,13 +12,13 @@ public class FXUIApplication extends Application {
 
 	   @Override
 	    public void start(Stage primaryStage) throws Exception{
-		   // NOTE: NEEDS TO COME FIRST!!
-			Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+		   	// NOTE: NEEDS TO COME FIRST!!
+			// Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
 		   
 	        Parent root = FXMLLoader.load(getClass().getResource("MainLayout.fxml"));
 	        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
 	        
-//			DeviceDetection
+	        // DeviceDetection
 			if(DeviceDetection.isAndroid()) {
 				primaryStage.setScene(new Scene(root, bounds.getWidth(), bounds.getHeight()));
 			} else {

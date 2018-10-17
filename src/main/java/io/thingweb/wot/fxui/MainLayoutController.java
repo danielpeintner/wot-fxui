@@ -1,7 +1,5 @@
 package io.thingweb.wot.fxui;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -10,7 +8,6 @@ import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -49,7 +46,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
@@ -61,7 +57,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.stage.FileChooser;
 import javafx.stage.Window;
 
 public class MainLayoutController {
@@ -77,11 +72,14 @@ public class MainLayoutController {
 	@FXML
 	TabPane tabPane;
 
-	@FXML
-	Button button;
+//	@FXML
+//	Button button;
 
 	@FXML
 	TextField textFieldURI;
+	
+	@FXML
+	TextArea textAreaJSONLD;
 
 	static final Font FONT_CATEGORY = Font.font("Arial", FontWeight.BOLD, 20);
 
@@ -413,7 +411,7 @@ public class MainLayoutController {
 
 			ScrollPane scrollPane = new ScrollPane();
 			scrollPane.setContent(gridPane);
-			scrollPane.setPadding(new Insets(15, 15, 15, 15));
+			scrollPane.setPadding(new Insets(10, 10, 10, 10));
 
 			SplitPane splitPane = new SplitPane();
 			splitPane.setOrientation(Orientation.VERTICAL);
@@ -520,6 +518,21 @@ public class MainLayoutController {
 			showAlertDialog(e);
 		}
 	}
+	
+	@FXML
+	protected void handleLoadTD(ActionEvent event) {
+		try {
+			String sJsonLD = textAreaJSONLD.getText();
+
+			JsonObject jobj = JSONLD.parseJSON(sJsonLD);
+			loadTD(jobj);
+			
+		} catch (Exception e) {
+			LOGGER.severe(e.getMessage());
+			showAlertDialog(e);
+		}
+	}
+	
 
 //	@FXML
 //	protected void handleMenuOpenTDFile(ActionEvent event) {

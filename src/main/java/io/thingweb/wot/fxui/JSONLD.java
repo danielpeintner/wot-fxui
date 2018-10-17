@@ -1,6 +1,7 @@
 package io.thingweb.wot.fxui;
 
 import java.io.InputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -79,6 +80,15 @@ public class JSONLD {
 
 	public static JsonObject parseJSON(InputStream is) {
 		try(JsonReader rdr = Json.createReader(is)) {
+			JsonObject obj = rdr.readObject();
+			// TODO sanitize JSON
+
+			return obj;
+		}
+	}
+	
+	public static JsonObject parseJSON(String text) {
+		try(JsonReader rdr = Json.createReader(new StringReader(text))) {
 			JsonObject obj = rdr.readObject();
 			// TODO sanitize JSON
 
