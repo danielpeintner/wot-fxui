@@ -15,6 +15,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
 
 <StackPane fx:id="stackPaneRoot"
 	xmlns="http://javafx.com/javafx/8.0.171"
@@ -33,7 +34,7 @@
 									<Insets bottom="10" left="10" right="10" top="10" />
 								</padding>
 								<panes>
-									<TitledPane text="Load WoT ThingDescription from an URI">
+									<TitledPane text="Load WoT ThingDescription from URI">
 										<BorderPane>
 											<padding>
 												<Insets bottom="10" left="10" right="10" top="10" />
@@ -56,7 +57,11 @@
 															text="https://raw.githubusercontent.com/w3c/wot/master/plugfest/2018-sept-online/TDs/Siemens/TestThing.jsonld" GridPane.hgrow="ALWAYS" />
 														<Button onAction="#handleLoadTDURI"
 															text="Load URI" GridPane.columnIndex="1"
-															GridPane.halignment="RIGHT"  />
+															GridPane.halignment="RIGHT" >
+															<!-- <graphic>
+																<FontAwesomeIconView glyphName="FILE"/>
+															</graphic> -->
+														</Button>
 													</children>
 												</GridPane>
 											</center>

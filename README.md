@@ -1,5 +1,15 @@
 # wot-fxui
 
+## Installation
+
+JavaFXPorts: 
+http://docs.gluonhq.com/javafxports/
+
+
+### Issues & Resolutions
+
+https://stackoverflow.com/questions/42143300/how-can-i-install-android-support-library-to-deploy-a-gluon-mobile-application/42143741#42143741
+
 
 ## Building & Running
 

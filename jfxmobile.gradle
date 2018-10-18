@@ -20,6 +20,7 @@ dependencies {
 	compile 'org.eclipse.californium:californium-core:2.0.0-M12' /*M9*/
 	compile 'com.jfoenix:jfoenix:8.0.5' /* JAVA 8*/
 	/* compile 'com.jfoenix:jfoenix:9.0.6' */ /* JAVA 9+*/
+	compile 'de.jensd:fontawesomefx:8.9'
 }
 
 mainClassName = 'io.thingweb.wot.fxui.FXUIApplication'

@@ -20,6 +20,8 @@ import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
 
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
+import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
 import io.thingweb.wot.fxui.client.Callback;
 import io.thingweb.wot.fxui.client.Client;
@@ -186,7 +188,8 @@ public class MainLayoutController {
 
 								if(href != null) {
 
-									Button buttonGET = new Button("GET");
+									Button buttonGET = new Button(); // "GET"
+									buttonGET.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.EYE)); // BINOCULARS
 									buttonGET.setOnAction(new EventHandler<ActionEvent>() {
 										@Override
 										public void handle(ActionEvent e) {
@@ -249,7 +252,8 @@ public class MainLayoutController {
 										vboxTextFields.getChildren().add(textFieldPUT);
 
 										//
-										Button buttonPUT = new Button("PUT");
+										Button buttonPUT = new Button(); // "PUT"
+										buttonPUT.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.EDIT));
 										buttonPUT.setOnAction(new EventHandler<ActionEvent>() {
 											@Override
 											public void handle(ActionEvent e) {
@@ -335,7 +339,8 @@ public class MainLayoutController {
 								gridPane.add(textProp, 1, row);
 								GridPane.setHalignment(textProp, HPos.RIGHT);
 
-								Button buttonPOST = new Button("POST");
+								Button buttonPOST = new Button(); // "POST"
+								buttonPOST.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.PLAY)); 
 								buttonPOST.setOnAction(new EventHandler<ActionEvent>() {
 									@Override
 									public void handle(ActionEvent e) {
