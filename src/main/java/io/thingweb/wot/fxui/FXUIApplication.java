@@ -1,12 +1,15 @@
 package io.thingweb.wot.fxui;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public class FXUIApplication extends Application {
 
@@ -26,6 +29,14 @@ public class FXUIApplication extends Application {
 				primaryStage.setScene(new Scene(root, 800, 600));
 			}
 	        
+			primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			    @Override
+			    public void handle(WindowEvent t) {
+			        Platform.exit();
+			        System.exit(0);
+			    }
+			});
+			
 	        primaryStage.setTitle("WoT-FX-UI Application");
 	        primaryStage.show();
 	    }

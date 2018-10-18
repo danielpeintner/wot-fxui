@@ -2,9 +2,14 @@ package io.thingweb.wot.fxui;
 
 import java.io.InputStream;
 import java.io.StringReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -14,6 +19,8 @@ import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 
 public class JSONLD {
+	
+	private final static Logger LOGGER = Logger.getLogger(JSONLD.class.getName());
 
 	public static String KEY_PROPERTIES = "properties";
 	public static String KEY_ACTIONS = "actions";
@@ -80,37 +87,41 @@ public class JSONLD {
 
 	public static JsonObject parseJSON(InputStream is) {
 		try(JsonReader rdr = Json.createReader(is)) {
-			JsonObject obj = rdr.readObject();
-			// TODO sanitize JSON
-
-			return obj;
+			return parseJSON(rdr);
 		}
 	}
 	
 	public static JsonObject parseJSON(String text) {
 		try(JsonReader rdr = Json.createReader(new StringReader(text))) {
-			JsonObject obj = rdr.readObject();
-			// TODO sanitize JSON
-
-			return obj;
+			return parseJSON(rdr);
 		}
+	}
+	
+	private static JsonObject parseJSON(JsonReader rdr) {
+		JsonObject obj = rdr.readObject();
+		// TODO sanitize JSON ?
+		return obj;
 	}
 
 	public static String getThingName(JsonObject jobj) {
 		return jobj.getString("name", null);
 	}
+	
+	public static String getBase(JsonObject jobj) {
+		return jobj.getString("base", null);
+	}
 
 
-	public static List<JsonObject> getProperties(JsonObject jobj) {
+	public static Map<String, JsonObject> getProperties(JsonObject jobj) {
 		return getInteractions(jobj, "properties");
 	}
 
-	public static List<JsonObject> getActions(JsonObject jobj) {
+	public static Map<String, JsonObject> getActions(JsonObject jobj) {
 		return getInteractions(jobj, "actions");
 	}
 
-	private static List<JsonObject> getInteractions(JsonObject jobj, String key) {
-		List<JsonObject> list = new ArrayList<>();
+	private static Map<String, JsonObject> getInteractions(JsonObject jobj, String key) {
+		Map<String, JsonObject> list = new HashMap<>();
 
 		JsonValue interactions = jobj.get(key);
 		if (interactions != null && interactions.getValueType() == ValueType.OBJECT) {
@@ -121,7 +132,7 @@ public class JSONLD {
 					JsonValue jvInteraction = joInteractions.get(interactionName);
 					if (jvInteraction != null && jvInteraction.getValueType() == ValueType.OBJECT) {
 						JsonObject joInteraction = jvInteraction.asJsonObject();
-						list.add(joInteraction);
+						list.put(interactionName, joInteraction);
 					}
 				}
 			}
@@ -143,16 +154,44 @@ public class JSONLD {
 		return null;
 	}
 
+	
+	private static String getAbsoluteUri(String base, String href) {
+		if(base == null) {
+			return href;
+		} else {
+			// add base to interactions if relative URI
+			try {
+				URI u = new URI(href);
+				if(u.isAbsolute()) {
+					// ok
+				} else {
+					// add base
+					return base + href;
+				}
+				
+			} catch (URISyntaxException e) {
+			}
+			return null;
+		}
+	}
 
 	public static List<ProtocolMediaType> getProtocols(JsonObject jobj) {
 		List<ProtocolMediaType> pms = new ArrayList<>();
 
-		List<JsonObject> properties = getProperties(jobj);
-		List<JsonObject> actions = getActions(jobj);
+		Map<String, JsonObject> properties = getProperties(jobj);
+		Map<String, JsonObject> actions = getActions(jobj);
 
 		List<JsonObject> interactions = new ArrayList<>();
-		interactions.addAll(properties);
-		interactions.addAll(actions);
+		for(JsonObject jo : properties.values()) {
+			interactions.add(jo);
+		}
+		for(JsonObject jo : actions.values()) {
+			interactions.add(jo);
+		}
+		// interactions.addAll(properties);
+		// interactions.addAll(actions);
+		
+		String base = getBase(jobj);
 
 		for(JsonObject joInteraction :  interactions) {
 			if (joInteraction.containsKey("forms") && joInteraction.get("forms").getValueType() == ValueType.ARRAY) {
@@ -163,6 +202,7 @@ public class JSONLD {
 
 						if (joForm.containsKey("href") && joForm.get("href").getValueType() == ValueType.STRING) {
 							String href = joForm.getString("href");
+							href = getAbsoluteUri(base, href);
 							String protocol = getProtocol(href);
 							if(protocol != null) {
 								if (joForm.containsKey("mediaType") && joForm.get("mediaType").getValueType() == ValueType.STRING) {
@@ -182,5 +222,31 @@ public class JSONLD {
 		}
 
 		return pms;
+	}
+	
+	
+	public static String getInteractionHref(JsonObject joInteraction, String base, String protocol) {
+		if (joInteraction.containsKey(JSONLD.KEY_FORMS) && joInteraction.get(JSONLD.KEY_FORMS).getValueType() == ValueType.ARRAY) {
+			JsonArray jaForms = joInteraction.get(JSONLD.KEY_FORMS).asJsonArray();
+			for(int i=0; i<jaForms.size(); i++) {
+				// pick right form / mediaType
+				if (jaForms.get(i) != null && jaForms.get(i).getValueType() == ValueType.OBJECT) {
+					JsonObject joForm = jaForms.get(i).asJsonObject();
+
+					if (joForm.containsKey(JSONLD.KEY_HREF) && joForm.get(JSONLD.KEY_HREF).getValueType() == ValueType.STRING) {
+						String href = joForm.getString(JSONLD.KEY_HREF);
+						href = getAbsoluteUri(base, href);
+						if(href.startsWith(protocol)) {
+							return href;
+						}
+					}
+				}
+
+			}
+		} else {
+			LOGGER.warning("Property forms not array or null");
+		}
+
+		return null; // failure
 	}
 }

@@ -5,10 +5,13 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 import javax.json.JsonObject;
 
 import org.junit.Test;
+
+import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
 
 public class JSONLDTest {
 
@@ -17,11 +20,15 @@ public class JSONLDTest {
 		try(InputStream is = JSONLDTest.class.getResource("/td-counter.jsonld").openStream()) {
 			JsonObject jobj = JSONLD.parseJSON(is);
 			
-			List<JsonObject> properties = JSONLD.getProperties(jobj);
+			Map<String, JsonObject> properties = JSONLD.getProperties(jobj);
 			assertTrue(properties.size() == 1);
 			
-			List<JsonObject> actions = JSONLD.getActions(jobj);
+			Map<String, JsonObject> actions = JSONLD.getActions(jobj);
 			assertTrue(actions.size() == 3);
+			
+			// [{application/json} http, {application/json} ws]
+			List<ProtocolMediaType> protocols = JSONLD.getProtocols(jobj);
+			assertTrue(protocols.size() == 2);
 		}
 	}
 	
@@ -30,12 +37,15 @@ public class JSONLDTest {
 		try(InputStream is = JSONLDTest.class.getResource("/TestThing.jsonld").openStream()) {
 			JsonObject jobj = JSONLD.parseJSON(is);
 			
-			List<JsonObject> properties = JSONLD.getProperties(jobj);
+			Map<String, JsonObject> properties = JSONLD.getProperties(jobj);
 			assertTrue(properties.size() == 6);
 			
-			List<JsonObject> actions = JSONLD.getActions(jobj);
+			Map<String, JsonObject> actions = JSONLD.getActions(jobj);
 			assertTrue(actions.size() == 7);
 			
+			// [{application/json} http, {application/json} coap]
+			List<ProtocolMediaType> protocols = JSONLD.getProtocols(jobj);
+			assertTrue(protocols.size() == 2);
 		}
 	}
 	
@@ -44,12 +54,17 @@ public class JSONLDTest {
 		try(InputStream is = JSONLDTest.class.getResource("/FestoLive-Oracle.jsonld").openStream()) {
 			JsonObject jobj = JSONLD.parseJSON(is);
 			
-			List<JsonObject> properties = JSONLD.getProperties(jobj);
+			Map<String, JsonObject> properties = JSONLD.getProperties(jobj);
 			assertTrue(properties.size() == 7);
 			
-			List<JsonObject> actions = JSONLD.getActions(jobj);
+			Map<String, JsonObject> actions = JSONLD.getActions(jobj);
 			assertTrue(actions.size() == 4);
 			
+			// [{application/json} https]
+			List<ProtocolMediaType> protocols = JSONLD.getProtocols(jobj);
+			assertTrue(protocols.size() == 1);
+			
+			// JSONLD.getInteractionHref(joInteraction, protocol)
 		}
 	}
 
