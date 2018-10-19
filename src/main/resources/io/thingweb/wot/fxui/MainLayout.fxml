@@ -44,7 +44,7 @@
 													<children>
 														<Label text="Example URIs which can be loaded are:" />
 														<Label text="* http://localhost:8080/counter" />
-														<Label text="* https://raw.githubusercontent.com/w3c/wot/master/plugfest/2018-sept-online/TDs/Siemens/TestThing.jsonld" />
+														<Label text="* http://plugfest.thingweb.io:8083/TestThing" />
 														<Label text="* file:///C:/Temp/counter.jsonld" />
 														<Label text="" />
 													</children>
@@ -54,7 +54,7 @@
 												<GridPane>
 													<children>
 														<TextField fx:id="textFieldURI"
-															text="https://raw.githubusercontent.com/w3c/wot/master/plugfest/2018-sept-online/TDs/Siemens/TestThing.jsonld" GridPane.hgrow="ALWAYS" />
+															text="http://plugfest.thingweb.io:8083/TestThing" GridPane.hgrow="ALWAYS" />
 														<Button onAction="#handleLoadTDURI"
 															text="Load URI" GridPane.columnIndex="1"
 															GridPane.halignment="RIGHT" >
