@@ -7,6 +7,8 @@ import java.net.URI;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -75,6 +77,12 @@ public class MainLayoutController {
 
 	@FXML
 	TextField textFieldURI;
+	
+	@FXML
+	TextField textFieldDirectory;
+	
+	@FXML
+	VBox vBoxDirectory;
 	
 	@FXML
 	TextArea textAreaJSONLD;
@@ -490,6 +498,40 @@ public class MainLayoutController {
 			JsonObject jobj = JSONLD.parseJSON(sJsonLD);
 			loadTD(jobj);
 			
+		} catch (Exception e) {
+			LOGGER.severe(e.getMessage());
+			showAlertDialog(e);
+		}
+	}
+	
+	@FXML
+	protected void handleLoadTDDirectory(ActionEvent event) {
+		try {
+			URI uri = new URI(textFieldDirectory.getText());
+			// TODO coap scheme use californium
+
+			URL url = uri.toURL(); // get URL from your uri object
+			try(InputStream istream = url.openStream()) {
+				JsonObject jobj = JSONLD.parseJSON(istream);
+				
+				vBoxDirectory.getChildren().clear();
+				
+				LocalDate ld = LocalDate.now();
+				LocalTime lt = LocalTime.now();
+				Label l = new Label("\nThe following TDs have been found (" + ld + " " + lt + ")");
+				vBoxDirectory.getChildren().add(l);
+				
+				for(String key : jobj.keySet()) {
+					Button b = new Button("Load \"" + key +"\"");
+					b.setOnAction(new EventHandler<ActionEvent>() {
+					    @Override public void handle(ActionEvent e) {
+					    	loadTD(jobj.getJsonObject(key));
+					    }
+					});
+					
+					vBoxDirectory.getChildren().add(b);
+				}
+			}
 		} catch (Exception e) {
 			LOGGER.severe(e.getMessage());
 			showAlertDialog(e);

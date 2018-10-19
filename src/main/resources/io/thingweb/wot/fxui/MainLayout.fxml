@@ -67,6 +67,7 @@
 											</center>
 										</BorderPane>
 									</TitledPane>
+									
 									<TitledPane text="Load WoT ThingDescription from JSON-LD input">
 										<BorderPane>
 											<center>
@@ -76,8 +77,36 @@
 												<Button onAction="#handleLoadTD" text="Load" />
 											</right>
 										</BorderPane>
-										
 									</TitledPane>
+									
+									<TitledPane text="Load WoT ThingDescription from Directory">
+										<BorderPane>
+											<padding>
+												<Insets bottom="10" left="10" right="10" top="10" />
+											</padding>
+											<top>
+												<GridPane>
+													<children>
+														<TextField fx:id="textFieldDirectory"
+															text="http://plugfest.thingweb.io:8081/td-lookup/sem" GridPane.hgrow="ALWAYS" />
+														<Button onAction="#handleLoadTDDirectory"
+															text="Look-up Directory" GridPane.columnIndex="1"
+															GridPane.halignment="RIGHT" >
+														</Button>
+													</children>
+												</GridPane>
+											</top>
+											<center>
+												<VBox fx:id="vBoxDirectory" spacing="10">
+													<!-- <padding>
+														<Insets bottom="10" left="10" right="10" top="10" />
+													</padding> -->
+												
+												</VBox>
+											</center>
+										</BorderPane>
+									</TitledPane>
+									
 								</panes>
 							</Accordion>
 						
