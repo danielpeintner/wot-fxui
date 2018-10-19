@@ -14,6 +14,12 @@ repositories {
     jcenter()
 }
 
+
+/*
+ * TODO: Look into issue with "Duplicate files error".
+ * see solution in https://github.com/eclipse/californium/issues/770#issuecomment-431304582
+ */
+
 dependencies {
 	compile 'javax.json:javax.json-api:1.1.2' /* 1.1.2*/
 	compile 'org.glassfish:javax.json:1.1.2' /*1.1.2*/
