@@ -163,7 +163,8 @@ public class JSONLD {
 			try {
 				URI u = new URI(href);
 				if(u.isAbsolute()) {
-					// ok
+					// ok as is
+					return href;
 				} else {
 					// add base
 					return base + href;
