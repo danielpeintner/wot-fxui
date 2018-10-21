@@ -11,6 +11,7 @@ import javax.json.JsonObject;
 
 import org.junit.Test;
 
+import io.thingweb.wot.fxui.JSONLD.Form;
 import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
 
 public class JSONLDTest {
@@ -107,6 +108,45 @@ public class JSONLDTest {
 //		}
 //	}
 	
+	@Test
+	public void testLight_local() throws IOException {
+		try(InputStream is = JSONLDTest.class.getResource("/td-light-local.json").openStream()) {
+			JsonObject jobj = JSONLD.parseJSON(is);
+			
+			Map<String, JsonObject> properties = JSONLD.getProperties(jobj);
+			assertTrue(properties.size() == 2);
+			
+			String base = JSONLD.getBase(jobj);
+			
+			// [{application/json} http]
+			List<ProtocolMediaType> protocols = JSONLD.getProtocols(jobj);
+			assertTrue(protocols.size() == 1);
+			
+			for(ProtocolMediaType protocol : protocols) {
+				for(String propName : properties.keySet()) {
+					JsonObject joProperty = properties.get(propName);
+					
+					Form form = JSONLD.getInteractionForm(joProperty, base, protocol.protocol);
+					
+					// TODO check form with POST for setting data (instead of PUT)
+					
+					if(propName.equals("SwitchState")) {
+						assertTrue(form.href.equals(base + "/light"));
+					} else if(propName.equals("CurrentBrightness")) {
+						assertTrue(form.href.equals(base + "/light"));
+					}
+				}
+			}
+			
+			
+			Map<String, JsonObject> actions = JSONLD.getActions(jobj);
+			assertTrue(actions.size() == 3);
+			
+
+			
+			// JSONLD.getInteractionHref(joInteraction, protocol)
+		}
+	}
 	
 
 }
