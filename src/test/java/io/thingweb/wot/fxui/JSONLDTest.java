@@ -87,6 +87,25 @@ public class JSONLDTest {
 		}
 	}
 	
+
+//	@Test
+//	public void testOCF() throws IOException {
+//		try(InputStream is = JSONLDTest.class.getResource("/OCF.jsonld").openStream()) {
+//			JsonObject jobj = JSONLD.parseJSON(is);
+//			
+//			Map<String, JsonObject> properties = JSONLD.getProperties(jobj);
+//			assertTrue(properties.size() == 1);
+//			
+//			Map<String, JsonObject> actions = JSONLD.getActions(jobj);
+//			assertTrue(actions.size() == 0);
+//			
+//			// [{application/json} https]
+//			List<ProtocolMediaType> protocols = JSONLD.getProtocols(jobj);
+//			assertTrue(protocols.size() == 1);
+//			
+//			// JSONLD.getInteractionHref(joInteraction, protocol)
+//		}
+//	}
 	
 	
 
