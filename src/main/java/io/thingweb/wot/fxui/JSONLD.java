@@ -250,13 +250,20 @@ public class JSONLD {
 							href = getAbsoluteUri(base, href);
 							String protocol = getProtocol(href);
 							if(protocol != null) {
+								String mediaType = "application/json"; // default
+								
+								// backward compatibility
 								if (joForm.containsKey("mediaType") && joForm.get("mediaType").getValueType() == ValueType.STRING) {
-									String mediaType = joForm.getString("mediaType");
-
-									ProtocolMediaType pm = new ProtocolMediaType(protocol, mediaType);
-									if(!pms.contains(pm)) {
-										pms.add(pm);
-									}
+									mediaType = joForm.getString("mediaType");
+								}
+								
+								if (joForm.containsKey("contenttype") && joForm.get("contenttype").getValueType() == ValueType.STRING) {
+									mediaType = joForm.getString("contenttype");
+								}
+								
+								ProtocolMediaType pm = new ProtocolMediaType(protocol, mediaType);
+								if(!pms.contains(pm)) {
+									pms.add(pm);
 								}
 							}
 						}
