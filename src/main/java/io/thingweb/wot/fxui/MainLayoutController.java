@@ -9,6 +9,8 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -25,11 +27,14 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
 import io.thingweb.wot.fxui.client.Callback;
 import io.thingweb.wot.fxui.client.Client;
+import io.thingweb.wot.fxui.client.Client.RequestOption;
 import io.thingweb.wot.fxui.client.ClientFactory;
 import io.thingweb.wot.fxui.client.Content;
 import io.thingweb.wot.fxui.client.MediaType;
 import io.thingweb.wot.fxui.client.impl.AbstractCallback;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -40,6 +45,7 @@ import javafx.geometry.Side;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
@@ -95,6 +101,24 @@ public class MainLayoutController {
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		textAreaLog.setText("[" + sdf.format(timestamp) + "] " + msg + "\n" + textAreaLog.getText());
 	}
+	
+	
+	private List<RequestOption> getRequestOptions(ComboBox<String> comboBoxSecurity, TextField textFieldUsername, TextField textFieldPassword) {
+		List<RequestOption> requestOptions = new ArrayList<>();
+		
+		if(comboBoxSecurity.getSelectionModel().getSelectedIndex() == 1) {
+			String username = textFieldUsername.getText().trim();
+			String password = textFieldPassword.getText().trim();
+			String userpass = username + ":" + password;
+			String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
+			
+			RequestOption ro1 = new RequestOption("Authorization", -1, basicAuth);
+			
+			requestOptions.add(ro1);
+		}
+		
+		return requestOptions;
+	}
 
 	protected void loadTD(final JsonObject jobj) {
 		Tab t = new Tab(JSONLD.getThingName(jobj));
@@ -135,6 +159,40 @@ public class MainLayoutController {
 			int row = 0;
 			
 			String base = JSONLD.getBase(jobj);
+			
+			final TextField textFieldUsername = new TextField();
+			final TextField textFieldPassword = new TextField();
+			
+			ObservableList<String> securitySchemes = 
+				    FXCollections.observableArrayList(
+				        "nosec",
+				        "basic"
+				    );
+			
+			ComboBox<String> comboBoxSecurity = new ComboBox<>(securitySchemes);
+			comboBoxSecurity.getSelectionModel().select(0);
+			
+			// Add information about security
+			{
+				Text category = new Text("Security:");
+				category.setFont(FONT_CATEGORY);
+				gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
+				// colSpan, rowSpan
+				
+				gridPane.add(new Label("Scheme: "), 0, row, 1, 1);
+				gridPane.add(comboBoxSecurity, 1, row, 3, 1);
+				row++;
+				
+				gridPane.add(new Label("Username: "), 0, row, 1, 1);
+				gridPane.add(textFieldUsername, 1, row, 3, 1);
+				row++;
+				
+				gridPane.add(new Label("Password: "), 0, row, 1, 1);
+				gridPane.add(textFieldPassword, 1, row, 3, 1);
+				row++;
+			}
+
+			
 			
 			// properties
 			Map<String, JsonObject> properties = JSONLD.getProperties(jobj);
@@ -198,7 +256,9 @@ public class MainLayoutController {
 											addLog(textAreaLog, msg);
 										}
 									};
-									client.get(propertyName, uri, callback);
+																		
+									
+									client.get(propertyName, uri, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
 
 								} catch (Exception e1) {
 									// log error
@@ -268,7 +328,7 @@ public class MainLayoutController {
 										// TODO mediaType
 										Content propertyValue = new Content(textFieldPUT.getText().getBytes(),
 												MediaType.APPLICATION_JSON);
-										client.put(propertyName, uri, propertyValue, callback);
+										client.put(propertyName, uri, propertyValue, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
 									} catch (Exception e1) {
 										// log error
 										String msg = "Error: " + e1.getMessage();
@@ -346,7 +406,7 @@ public class MainLayoutController {
 								};
 								// TODO action value
 								Content actionValue = new Content(new byte[0], MediaType.APPLICATION_JSON);
-								client.action(actionName, uri, actionValue, callback);
+								client.action(actionName, uri, actionValue, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
 								// }
 							} catch (Exception e1) {
 								// log error

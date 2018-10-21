@@ -15,7 +15,7 @@ public class ClientFactory {
 		return("http".equals(scheme) || "https".equals(scheme));
 	}
 
-	public Client getClient(URI uri) throws UnsupportedException {
+	public Client getClient(URI uri) throws Exception {
 		String scheme = uri.getScheme();
 		// check uri scheme
 		if(isHttpScheme(scheme)) {
