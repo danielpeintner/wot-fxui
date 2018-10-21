@@ -20,6 +20,20 @@ import javax.json.JsonValue.ValueType;
 
 public class JSONLD {
 	
+	public static enum SecurityScheme {
+		nosec,
+		basic,
+		cert,
+		digest,
+		bearer,
+		pop,
+		psk,
+		// public,
+		oauth2,
+		apikey
+	}
+	
+	
 	private final static Logger LOGGER = Logger.getLogger(JSONLD.class.getName());
 
 	public static String KEY_PROPERTIES = "properties";
@@ -176,6 +190,35 @@ public class JSONLD {
 		}
 	}
 
+	
+	public static List<SecurityScheme> getSecuritySchemes(JsonObject jobj) {
+		List<SecurityScheme> securitySchemes = new ArrayList<>();
+		
+		if (jobj.containsKey("security") && jobj.get("security").getValueType() == ValueType.ARRAY) {
+			JsonArray jaSecurity = jobj.get("security").asJsonArray();
+			for(int i=0; i<jaSecurity.size(); i++) {
+				if (jaSecurity.get(i) != null && jaSecurity.get(i).getValueType() == ValueType.OBJECT) {
+					JsonObject joSecurity = jaSecurity.get(i).asJsonObject();
+
+					if (joSecurity.containsKey("scheme") && joSecurity.get("scheme").getValueType() == ValueType.STRING) {
+						String scheme = joSecurity.getString("scheme");
+						try {
+							SecurityScheme ss = SecurityScheme.valueOf(scheme);
+							if(!securitySchemes.contains(ss)) {
+								securitySchemes.add(ss);
+							}
+						} catch (Exception e) {
+						}
+					}
+				}
+			}
+		}
+		
+		// TODO walk over each interaction
+		
+		return securitySchemes;
+	}
+	
 	public static List<ProtocolMediaType> getProtocols(JsonObject jobj) {
 		List<ProtocolMediaType> pms = new ArrayList<>();
 

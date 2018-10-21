@@ -25,6 +25,7 @@ import com.jfoenix.controls.JFXDialogLayout;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
+import io.thingweb.wot.fxui.JSONLD.SecurityScheme;
 import io.thingweb.wot.fxui.client.Callback;
 import io.thingweb.wot.fxui.client.Client;
 import io.thingweb.wot.fxui.client.Client.RequestOption;
@@ -173,7 +174,8 @@ public class MainLayoutController {
 			comboBoxSecurity.getSelectionModel().select(0);
 			
 			// Add information about security
-			{
+			List<SecurityScheme> ss = JSONLD.getSecuritySchemes(jobj);
+			if(ss.size() > 1 || (ss.size() >= 1 && !ss.contains(SecurityScheme.nosec))){
 				Text category = new Text("Security:");
 				category.setFont(FONT_CATEGORY);
 				gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
