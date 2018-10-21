@@ -42,6 +42,7 @@ public class JSONLD {
 
 	public static String KEY_FORMS = "forms";
 	public static String KEY_HREF = "href";
+	public static String KEY_MEDIA_TYPE = "mediaType";
 
 	public static String KEY_WRITABLE = "writable";
 	public static String KEY_OBSERVABLE = "observable";
@@ -269,7 +270,7 @@ public class JSONLD {
 	}
 	
 	
-	public static String getInteractionHref(JsonObject joInteraction, String base, String protocol) {
+	public static Form getInteractionForm(JsonObject joInteraction, String base, String protocol) {
 		if (joInteraction.containsKey(JSONLD.KEY_FORMS) && joInteraction.get(JSONLD.KEY_FORMS).getValueType() == ValueType.ARRAY) {
 			JsonArray jaForms = joInteraction.get(JSONLD.KEY_FORMS).asJsonArray();
 			for(int i=0; i<jaForms.size(); i++) {
@@ -280,8 +281,14 @@ public class JSONLD {
 					if (joForm.containsKey(JSONLD.KEY_HREF) && joForm.get(JSONLD.KEY_HREF).getValueType() == ValueType.STRING) {
 						String href = joForm.getString(JSONLD.KEY_HREF);
 						href = getAbsoluteUri(base, href);
+						
 						if(href.startsWith(protocol)) {
-							return href;
+							String mediaType = "application/json"; // "text/plain"
+							if (joForm.containsKey(JSONLD.KEY_MEDIA_TYPE) && joForm.get(JSONLD.KEY_MEDIA_TYPE).getValueType() == ValueType.STRING) {
+								mediaType = joForm.getString(JSONLD.KEY_MEDIA_TYPE);
+							}
+							
+							return new Form(href, mediaType);
 						}
 					}
 				}

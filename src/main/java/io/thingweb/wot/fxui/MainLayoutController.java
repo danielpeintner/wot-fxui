@@ -24,6 +24,7 @@ import com.jfoenix.controls.JFXDialogLayout;
 
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
+import io.thingweb.wot.fxui.JSONLD.Form;
 import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
 import io.thingweb.wot.fxui.JSONLD.SecurityScheme;
 import io.thingweb.wot.fxui.client.Callback;
@@ -222,19 +223,19 @@ public class MainLayoutController {
 					//
 
 					VBox vboxTextButtons = new VBox();
-					String href = JSONLD.getInteractionHref(joProperty, base, protocol.protocol);
+					Form form = JSONLD.getInteractionForm(joProperty, base, protocol.protocol);
 
-					if(href != null) {
+					if(form != null && form.href != null) {
 						Button buttonGET = new Button(); // "GET"
 						buttonGET.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.EYE)); // BINOCULARS
-						buttonGET.setTooltip(new Tooltip(href));
+						buttonGET.setTooltip(new Tooltip(form.href));
 						buttonGET.setOnAction(new EventHandler<ActionEvent>() {
 							@Override
 							public void handle(ActionEvent e) {
 								LOGGER.info("GET " + propertyName);
 								ClientFactory cf = new ClientFactory();
 								try {
-									URI uri = new URI(href);
+									URI uri = new URI(form.href);
 									Client client = cf.getClient(uri);
 									System.out.println(client);
 									Callback callback = new AbstractCallback() {
@@ -291,7 +292,7 @@ public class MainLayoutController {
 
 							//
 							Button buttonPUT = new Button(); // "PUT"
-							buttonPUT.setTooltip(new Tooltip(href));
+							buttonPUT.setTooltip(new Tooltip(form.href));
 							buttonPUT.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.EDIT));
 							buttonPUT.setOnAction(new EventHandler<ActionEvent>() {
 								@Override
@@ -302,7 +303,7 @@ public class MainLayoutController {
 									try {
 										// String href = getInteractionHref(joProperty);
 
-										URI uri = new URI(href);
+										URI uri = new URI(form.href);
 										Client client = cf.getClient(uri);
 										System.out.println(client);
 										Callback callback = new AbstractCallback() {
@@ -327,9 +328,8 @@ public class MainLayoutController {
 												addLog(textAreaLog, msg);
 											}
 										};
-										// TODO mediaType
-										Content propertyValue = new Content(textFieldPUT.getText().getBytes(),
-												MediaType.APPLICATION_JSON);
+										// mediaType
+										Content propertyValue = new Content(textFieldPUT.getText().getBytes(), MediaType.getMediaType(form.mediaType));
 										client.put(propertyName, uri, propertyValue, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
 									} catch (Exception e1) {
 										// log error
@@ -367,10 +367,10 @@ public class MainLayoutController {
 					gridPane.add(textProp, 1, row);
 					GridPane.setHalignment(textProp, HPos.RIGHT);
 
-					String href = JSONLD.getInteractionHref(joAction, base, protocol.protocol);
+					Form form = JSONLD.getInteractionForm(joAction, base, protocol.protocol);
 					
 					Button buttonPOST = new Button(); // "POST"
-					buttonPOST.setTooltip(new Tooltip(href));
+					buttonPOST.setTooltip(new Tooltip(form.href));
 					buttonPOST.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.PLAY)); 
 					buttonPOST.setOnAction(new EventHandler<ActionEvent>() {
 						@Override
@@ -385,7 +385,7 @@ public class MainLayoutController {
 								// actionName);
 								// if(forms.size() > 0) {
 								// URI uri = new URI(forms.get(0).href);
-								URI uri = new URI(href);
+								URI uri = new URI(form.href);
 								Client client = cf.getClient(uri);
 								System.out.println(client);
 								Callback callback = new AbstractCallback() {
