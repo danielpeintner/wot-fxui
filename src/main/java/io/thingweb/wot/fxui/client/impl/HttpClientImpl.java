@@ -6,8 +6,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -21,14 +19,10 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.eclipse.californium.core.coap.Option;
-import org.eclipse.californium.core.coap.Request;
-
 import io.thingweb.wot.fxui.client.Callback;
 import io.thingweb.wot.fxui.client.Content;
 import io.thingweb.wot.fxui.client.MediaType;
 import io.thingweb.wot.fxui.client.UnsupportedException;
-import io.thingweb.wot.fxui.client.Client.RequestOption;
 
 public class HttpClientImpl extends AbstractClientImpl {
 
