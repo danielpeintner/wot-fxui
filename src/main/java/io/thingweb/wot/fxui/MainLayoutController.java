@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -85,13 +86,13 @@ public class MainLayoutController {
 
 	@FXML
 	TextField textFieldURI;
-	
+
 	@FXML
 	TextField textFieldDirectory;
-	
+
 	@FXML
 	VBox vBoxDirectory;
-	
+
 	@FXML
 	TextArea textAreaJSONLD;
 
@@ -103,23 +104,34 @@ public class MainLayoutController {
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		textAreaLog.setText("[" + sdf.format(timestamp) + "] " + msg + "\n" + textAreaLog.getText());
 	}
-	
-	
+
+
 	private List<RequestOption> getRequestOptions(ComboBox<String> comboBoxSecurity, TextField textFieldUsername, TextField textFieldPassword) {
 		List<RequestOption> requestOptions = new ArrayList<>();
-		
+
 		if(comboBoxSecurity.getSelectionModel().getSelectedIndex() == 1) {
 			String username = textFieldUsername.getText().trim();
 			String password = textFieldPassword.getText().trim();
 			String userpass = username + ":" + password;
 			String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
-			
+
 			RequestOption ro1 = new RequestOption("Authorization", -1, basicAuth);
-			
+
 			requestOptions.add(ro1);
 		}
-		
+
 		return requestOptions;
+	}
+
+	static class PropertyForm {
+		public final Form form;
+		public final boolean writable;
+		public final boolean observable;
+		public PropertyForm(Form form, boolean writable, boolean observable) {
+			this.form = form;
+			this.writable = writable;
+			this.observable = observable;
+		}
 	}
 
 	protected void loadTD(final JsonObject jobj) {
@@ -134,7 +146,7 @@ public class MainLayoutController {
 		for(ProtocolMediaType protocol : protocols) {
 
 			Tab ti = new Tab(protocol.toString());
-			
+
 			tabPaneInner.getTabs().add(ti);
 
 			GridPane gridPane = new GridPane();
@@ -159,21 +171,21 @@ public class MainLayoutController {
 			textAreaLog.setEditable(false);
 
 			int row = 0;
-			
+
 			String base = JSONLD.getBase(jobj);
-			
+
 			final TextField textFieldUsername = new TextField();
 			final TextField textFieldPassword = new TextField();
-			
-			ObservableList<String> securitySchemes = 
+
+			ObservableList<String> securitySchemes =
 				    FXCollections.observableArrayList(
 				        "nosec",
 				        "basic"
 				    );
-			
+
 			ComboBox<String> comboBoxSecurity = new ComboBox<>(securitySchemes);
 			comboBoxSecurity.getSelectionModel().select(0);
-			
+
 			// Add information about security
 			List<SecurityScheme> ss = JSONLD.getSecuritySchemes(jobj);
 			if(ss.size() > 1 || (ss.size() >= 1 && !ss.contains(SecurityScheme.nosec))){
@@ -181,33 +193,58 @@ public class MainLayoutController {
 				category.setFont(FONT_CATEGORY);
 				gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
 				// colSpan, rowSpan
-				
+
 				gridPane.add(new Label("Scheme: "), 0, row, 1, 1);
 				gridPane.add(comboBoxSecurity, 1, row, 3, 1);
 				row++;
-				
+
 				gridPane.add(new Label("Username: "), 0, row, 1, 1);
 				gridPane.add(textFieldUsername, 1, row, 3, 1);
 				row++;
-				
+
 				gridPane.add(new Label("Password: "), 0, row, 1, 1);
 				gridPane.add(textFieldPassword, 1, row, 3, 1);
 				row++;
 			}
 
-			
-			
+			// global forms
+			Form formGlobal = JSONLD.getInteractionForm(jobj, base, protocol.protocol);
+
 			// properties
 			Map<String, JsonObject> properties = JSONLD.getProperties(jobj);
-			if(properties.size() > 0) {
-				
+			if(properties.size() > 0 || formGlobal != null) {
+
 				Text category = new Text("Properties:");
 				category.setFont(FONT_CATEGORY);
 				gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
 														// colSpan, rowSpan
-				
+
+
+				Map<String, PropertyForm> props = new HashMap<>();
+				if(formGlobal != null) {
+					props.put("#all", new PropertyForm(formGlobal, false, false));
+				}
 				for(String propertyName : properties.keySet()) {
 					JsonObject joProperty = properties.get(propertyName);
+					Form form = JSONLD.getInteractionForm(joProperty, base, protocol.protocol);
+					boolean writable = false;
+					boolean observable = false;
+					if (joProperty.containsKey(JSONLD.KEY_WRITABLE)
+							&& joProperty.get(JSONLD.KEY_WRITABLE).getValueType() == ValueType.TRUE) {
+						writable = true;
+					}
+					if (joProperty.containsKey(JSONLD.KEY_OBSERVABLE)
+							&& joProperty.get(JSONLD.KEY_OBSERVABLE).getValueType() == ValueType.TRUE) {
+						observable = true;
+					}
+					props.put(propertyName, new PropertyForm(form, writable, observable));
+				}
+
+				// for(String propertyName : properties.keySet()) {
+				for(String propertyName : props.keySet()) {
+					// JsonObject joProperty = properties.get(propertyName);
+					// Form form = JSONLD.getInteractionForm(joProperty, base, protocol.protocol);
+					PropertyForm propForm = props.get(propertyName);
 
 					Text textProp = new Text(propertyName + ":");
 					gridPane.add(textProp, 1, row);
@@ -223,19 +260,18 @@ public class MainLayoutController {
 					//
 
 					VBox vboxTextButtons = new VBox();
-					Form form = JSONLD.getInteractionForm(joProperty, base, protocol.protocol);
 
-					if(form != null && form.href != null) {
+					if(propForm.form != null && propForm.form.href != null) {
 						Button buttonGET = new Button(); // "GET"
 						buttonGET.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.EYE)); // BINOCULARS
-						buttonGET.setTooltip(new Tooltip(form.href));
+						buttonGET.setTooltip(new Tooltip(propForm.form.href));
 						buttonGET.setOnAction(new EventHandler<ActionEvent>() {
 							@Override
 							public void handle(ActionEvent e) {
 								LOGGER.info("GET " + propertyName);
 								ClientFactory cf = new ClientFactory();
 								try {
-									URI uri = new URI(form.href);
+									URI uri = new URI(propForm.form.href);
 									Client client = cf.getClient(uri);
 									System.out.println(client);
 									Callback callback = new AbstractCallback() {
@@ -259,8 +295,8 @@ public class MainLayoutController {
 											addLog(textAreaLog, msg);
 										}
 									};
-																		
-									
+
+
 									client.get(propertyName, uri, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
 
 								} catch (Exception e1) {
@@ -276,8 +312,7 @@ public class MainLayoutController {
 						hboxTextButtons.getChildren().add(buttonGET);
 
 						// observable
-						if (joProperty.containsKey(JSONLD.KEY_OBSERVABLE)
-								&& joProperty.get(JSONLD.KEY_OBSERVABLE).getValueType() == ValueType.TRUE) {
+						if (propForm.observable) {
 							ToggleButton tbObs = new ToggleButton("OBS");
 							hboxTextButtons.getChildren().add(tbObs);
 						}
@@ -285,14 +320,13 @@ public class MainLayoutController {
 						vboxTextButtons.getChildren().add(hboxTextButtons);
 
 						// writable
-						if (joProperty.containsKey(JSONLD.KEY_WRITABLE)
-								&& joProperty.get(JSONLD.KEY_WRITABLE).getValueType() == ValueType.TRUE) {
+						if (propForm.writable) {
 							TextField textFieldPUT = new TextField();
 							vboxTextFields.getChildren().add(textFieldPUT);
 
 							//
 							Button buttonPUT = new Button(); // "PUT"
-							buttonPUT.setTooltip(new Tooltip(form.href));
+							buttonPUT.setTooltip(new Tooltip(propForm.form.href));
 							buttonPUT.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.EDIT));
 							buttonPUT.setOnAction(new EventHandler<ActionEvent>() {
 								@Override
@@ -303,7 +337,7 @@ public class MainLayoutController {
 									try {
 										// String href = getInteractionHref(joProperty);
 
-										URI uri = new URI(form.href);
+										URI uri = new URI(propForm.form.href);
 										Client client = cf.getClient(uri);
 										System.out.println(client);
 										Callback callback = new AbstractCallback() {
@@ -329,7 +363,7 @@ public class MainLayoutController {
 											}
 										};
 										// mediaType
-										Content propertyValue = new Content(textFieldPUT.getText().getBytes(), MediaType.getMediaType(form.mediaType));
+										Content propertyValue = new Content(textFieldPUT.getText().getBytes(), MediaType.getMediaType(propForm.form.mediaType));
 										client.put(propertyName, uri, propertyValue, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
 									} catch (Exception e1) {
 										// log error
@@ -359,7 +393,7 @@ public class MainLayoutController {
 				category.setFont(FONT_CATEGORY);
 				gridPane.add(category, 0, row++, 4, 1); // colidx, rowIdx,
 														// colSpan, rowSpan
-				
+
 				for(String actionName : actions.keySet()) {
 					JsonObject joAction = actions.get(actionName);
 
@@ -368,10 +402,10 @@ public class MainLayoutController {
 					GridPane.setHalignment(textProp, HPos.RIGHT);
 
 					Form form = JSONLD.getInteractionForm(joAction, base, protocol.protocol);
-					
+
 					Button buttonPOST = new Button(); // "POST"
 					buttonPOST.setTooltip(new Tooltip(form.href));
-					buttonPOST.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.PLAY)); 
+					buttonPOST.setGraphic(new FontAwesomeIconView(FontAwesomeIcon.PLAY));
 					buttonPOST.setOnAction(new EventHandler<ActionEvent>() {
 						@Override
 						public void handle(ActionEvent e) {
@@ -379,7 +413,7 @@ public class MainLayoutController {
 
 							ClientFactory cf = new ClientFactory();
 							try {
-								
+
 								// List<Form> forms =
 								// JSONLD.getActionForms(jobj,
 								// actionName);
@@ -455,9 +489,9 @@ public class MainLayoutController {
 			// BorderPane bp = new BorderPane();
 			// bp.setCenter(scrollPane);
 			// bp.setBottom(new TextArea());
-			// 
-			
-			
+			//
+
+
 			ti.setContent(splitPane);
 		}
 
@@ -551,7 +585,7 @@ public class MainLayoutController {
 			showAlertDialog(e);
 		}
 	}
-	
+
 	@FXML
 	protected void handleLoadTD(ActionEvent event) {
 		try {
@@ -559,13 +593,13 @@ public class MainLayoutController {
 
 			JsonObject jobj = JSONLD.parseJSON(sJsonLD);
 			loadTD(jobj);
-			
+
 		} catch (Exception e) {
 			LOGGER.severe(e.getMessage());
 			showAlertDialog(e);
 		}
 	}
-	
+
 	@FXML
 	protected void handleLoadTDDirectory(ActionEvent event) {
 		try {
@@ -575,14 +609,14 @@ public class MainLayoutController {
 			URL url = uri.toURL(); // get URL from your uri object
 			try(InputStream istream = url.openStream()) {
 				JsonObject jobj = JSONLD.parseJSON(istream);
-				
+
 				vBoxDirectory.getChildren().clear();
-				
+
 				LocalDate ld = LocalDate.now();
 				LocalTime lt = LocalTime.now();
 				Label l = new Label("\nThe following TDs have been found (" + ld + " " + lt + ")");
 				vBoxDirectory.getChildren().add(l);
-				
+
 				for(String key : jobj.keySet()) {
 					Button b = new Button("Load \"" + key +"\"");
 					b.setOnAction(new EventHandler<ActionEvent>() {
@@ -590,7 +624,7 @@ public class MainLayoutController {
 					    	loadTD(jobj.getJsonObject(key));
 					    }
 					});
-					
+
 					vBoxDirectory.getChildren().add(b);
 				}
 			}
@@ -599,7 +633,7 @@ public class MainLayoutController {
 			showAlertDialog(e);
 		}
 	}
-	
+
 
 //	@FXML
 //	protected void handleMenuOpenTDFile(ActionEvent event) {
