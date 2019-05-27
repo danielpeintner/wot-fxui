@@ -125,17 +125,19 @@ public class MainLayoutController {
 
 	static class PropertyForm {
 		public final Form form;
-		public final boolean writable;
+		public final boolean readOnly;
+		public final boolean writeOnly;
 		public final boolean observable;
-		public PropertyForm(Form form, boolean writable, boolean observable) {
+		public PropertyForm(Form form, boolean readOnly, boolean writeOnly, boolean observable) {
 			this.form = form;
-			this.writable = writable;
+			this.readOnly = readOnly;
+			this.writeOnly = writeOnly;
 			this.observable = observable;
 		}
 	}
 
 	protected void loadTD(final JsonObject jobj) {
-		Tab t = new Tab(JSONLD.getThingName(jobj));
+		Tab t = new Tab(JSONLD.getThingTitle(jobj));
 
 		TabPane tabPaneInner = new TabPane();
 		tabPaneInner.setSide(Side.BOTTOM);
@@ -222,22 +224,27 @@ public class MainLayoutController {
 
 				Map<String, PropertyForm> props = new HashMap<>();
 				if(formGlobal != null) {
-					props.put("#all", new PropertyForm(formGlobal, false, false));
+					props.put("#all", new PropertyForm(formGlobal, false, false, false));
 				}
 				for(String propertyName : properties.keySet()) {
 					JsonObject joProperty = properties.get(propertyName);
 					Form form = JSONLD.getInteractionForm(joProperty, base, protocol.protocol);
-					boolean writable = false;
+					boolean readOnly = false;
+					boolean writeOnly = false;
 					boolean observable = false;
-					if (joProperty.containsKey(JSONLD.KEY_WRITABLE)
-							&& joProperty.get(JSONLD.KEY_WRITABLE).getValueType() == ValueType.TRUE) {
-						writable = true;
+					if (joProperty.containsKey(JSONLD.KEY_READONLY)
+							&& joProperty.get(JSONLD.KEY_READONLY).getValueType() == ValueType.TRUE) {
+						readOnly = true;
+					}
+					if (joProperty.containsKey(JSONLD.KEY_WRITEONLY)
+							&& joProperty.get(JSONLD.KEY_WRITEONLY).getValueType() == ValueType.TRUE) {
+						writeOnly = true;
 					}
 					if (joProperty.containsKey(JSONLD.KEY_OBSERVABLE)
 							&& joProperty.get(JSONLD.KEY_OBSERVABLE).getValueType() == ValueType.TRUE) {
 						observable = true;
 					}
-					props.put(propertyName, new PropertyForm(form, writable, observable));
+					props.put(propertyName, new PropertyForm(form, readOnly, writeOnly, observable));
 				}
 
 				// for(String propertyName : properties.keySet()) {
@@ -320,7 +327,7 @@ public class MainLayoutController {
 						vboxTextButtons.getChildren().add(hboxTextButtons);
 
 						// writable
-						if (propForm.writable) {
+						if (!propForm.readOnly) {
 							TextField textFieldPUT = new TextField();
 							vboxTextFields.getChildren().add(textFieldPUT);
 

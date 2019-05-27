@@ -19,7 +19,7 @@ import javax.json.JsonValue;
 import javax.json.JsonValue.ValueType;
 
 public class JSONLD {
-	
+
 	public static enum SecurityScheme {
 		nosec,
 		basic,
@@ -32,8 +32,8 @@ public class JSONLD {
 		oauth2,
 		apikey
 	}
-	
-	
+
+
 	private final static Logger LOGGER = Logger.getLogger(JSONLD.class.getName());
 
 	public static String KEY_PROPERTIES = "properties";
@@ -44,7 +44,8 @@ public class JSONLD {
 	public static String KEY_HREF = "href";
 	public static String KEY_MEDIA_TYPE = "mediaType";
 
-	public static String KEY_WRITABLE = "writable";
+	public static String KEY_READONLY = "readOnly";
+	public static String KEY_WRITEONLY = "writeOnly";
 	public static String KEY_OBSERVABLE = "observable";
 
 	public static class Form {
@@ -105,23 +106,23 @@ public class JSONLD {
 			return parseJSON(rdr);
 		}
 	}
-	
+
 	public static JsonObject parseJSON(String text) {
 		try(JsonReader rdr = Json.createReader(new StringReader(text))) {
 			return parseJSON(rdr);
 		}
 	}
-	
+
 	private static JsonObject parseJSON(JsonReader rdr) {
 		JsonObject obj = rdr.readObject();
 		// TODO sanitize JSON ?
 		return obj;
 	}
 
-	public static String getThingName(JsonObject jobj) {
-		return jobj.getString("name", null);
+	public static String getThingTitle(JsonObject jobj) {
+		return jobj.getString("title", null);
 	}
-	
+
 	public static String getBase(JsonObject jobj) {
 		return jobj.getString("base", null);
 	}
@@ -169,7 +170,7 @@ public class JSONLD {
 		return null;
 	}
 
-	
+
 	private static String getAbsoluteUri(String base, String href) {
 		if(base == null) {
 			return href;
@@ -184,17 +185,17 @@ public class JSONLD {
 					// add base
 					return base + href;
 				}
-				
+
 			} catch (URISyntaxException e) {
 			}
 			return null;
 		}
 	}
 
-	
+
 	public static List<SecurityScheme> getSecuritySchemes(JsonObject jobj) {
 		List<SecurityScheme> securitySchemes = new ArrayList<>();
-		
+
 		if (jobj.containsKey("security") && jobj.get("security").getValueType() == ValueType.ARRAY) {
 			JsonArray jaSecurity = jobj.get("security").asJsonArray();
 			for(int i=0; i<jaSecurity.size(); i++) {
@@ -214,12 +215,12 @@ public class JSONLD {
 				}
 			}
 		}
-		
+
 		// TODO walk over each interaction
-		
+
 		return securitySchemes;
 	}
-	
+
 	public static List<ProtocolMediaType> getProtocols(JsonObject jobj) {
 		List<ProtocolMediaType> pms = new ArrayList<>();
 
@@ -235,7 +236,7 @@ public class JSONLD {
 		}
 		// interactions.addAll(properties);
 		// interactions.addAll(actions);
-		
+
 		String base = getBase(jobj);
 
 		for(JsonObject joInteraction :  interactions) {
@@ -251,16 +252,16 @@ public class JSONLD {
 							String protocol = getProtocol(href);
 							if(protocol != null) {
 								String mediaType = "application/json"; // default
-								
+
 								// backward compatibility
 								if (joForm.containsKey("mediaType") && joForm.get("mediaType").getValueType() == ValueType.STRING) {
 									mediaType = joForm.getString("mediaType");
 								}
-								
+
 								if (joForm.containsKey("contenttype") && joForm.get("contenttype").getValueType() == ValueType.STRING) {
 									mediaType = joForm.getString("contenttype");
 								}
-								
+
 								ProtocolMediaType pm = new ProtocolMediaType(protocol, mediaType);
 								if(!pms.contains(pm)) {
 									pms.add(pm);
@@ -275,8 +276,8 @@ public class JSONLD {
 
 		return pms;
 	}
-	
-	
+
+
 	public static Form getInteractionForm(JsonObject joInteraction, String base, String protocol) {
 		if (joInteraction.containsKey(JSONLD.KEY_FORMS) && joInteraction.get(JSONLD.KEY_FORMS).getValueType() == ValueType.ARRAY) {
 			JsonArray jaForms = joInteraction.get(JSONLD.KEY_FORMS).asJsonArray();
@@ -288,13 +289,13 @@ public class JSONLD {
 					if (joForm.containsKey(JSONLD.KEY_HREF) && joForm.get(JSONLD.KEY_HREF).getValueType() == ValueType.STRING) {
 						String href = joForm.getString(JSONLD.KEY_HREF);
 						href = getAbsoluteUri(base, href);
-						
+
 						if(href.startsWith(protocol)) {
 							String mediaType = "application/json"; // "text/plain"
 							if (joForm.containsKey(JSONLD.KEY_MEDIA_TYPE) && joForm.get(JSONLD.KEY_MEDIA_TYPE).getValueType() == ValueType.STRING) {
 								mediaType = joForm.getString(JSONLD.KEY_MEDIA_TYPE);
 							}
-							
+
 							return new Form(href, mediaType);
 						}
 					}
