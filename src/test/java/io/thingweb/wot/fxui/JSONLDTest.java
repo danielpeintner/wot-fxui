@@ -148,5 +148,50 @@ public class JSONLDTest {
 		}
 	}
 
+	@Test
+	public void testGrid() throws IOException {
+		try(InputStream is = JSONLDTest.class.getResource("/grid.json").openStream()) {
+			JsonObject jobj = JSONLD.parseJSON(is);
+
+			Map<String, JsonObject> properties = JSONLD.getProperties(jobj);
+			assertTrue(properties.size() == 11);
+
+			String base = JSONLD.getBase(jobj);
+			assertTrue("http://XXX_TBD_XXX.compute.amazonaws.com:8989/cem/".equals(base));
+
+			// [{application/json} http]
+			List<ProtocolMediaType> protocols = JSONLD.getProtocols(jobj);
+			assertTrue(protocols.size() == 1);
+
+			for(ProtocolMediaType protocol : protocols) {
+				for(String propName : properties.keySet()) {
+					JsonObject joProperty = properties.get(propName);
+
+					Form form = JSONLD.getInteractionForm(joProperty, base, protocol.protocol);
+
+					// TODO check form with POST for setting data (instead of PUT)
+
+					if(propName.equals("SwitchState")) {
+						assertTrue(form.href.equals(base + "/light"));
+					} else if(propName.equals("CurrentBrightness")) {
+						assertTrue(form.href.equals(base + "/light"));
+					}
+				}
+			}
+
+
+			Map<String, JsonObject> actions = JSONLD.getActions(jobj);
+			assertTrue(actions.size() == 0);
+
+
+//			Map<String, JsonObject> events = JSONLD.getEvents(jobj);
+//			assertTrue(events.size() == 1);
+
+
+
+			// JSONLD.getInteractionHref(joInteraction, protocol)
+		}
+	}
+
 
 }
