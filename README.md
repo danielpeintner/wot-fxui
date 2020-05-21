@@ -22,7 +22,7 @@ mvn jfx:native
 ### Desktop
 
 ```
-gradle -b jfxmobile.gradle run
+gradlew -b jfxmobile.gradle run
 ```
 
 ### Android
@@ -30,9 +30,9 @@ gradle -b jfxmobile.gradle run
 
 
 ```
-gradle -b jfxmobile.gradle android /* generates an apk that is signed with a debug keystore and put it in the directorybuild/javafxports/android */
-gradle -b jfxmobile.gradle androidRelease /* generates an apk that is signed with the configured signingConfig and put it in the directorybuild/javafxports/android  */
-gradle -b jfxmobile.gradle androidInstall /* installs the generated debug apk onto a device that is connected to your desktop  */
+gradlew -b jfxmobile.gradle android /* generates an apk that is signed with a debug keystore and put it in the directorybuild/javafxports/android */
+gradlew -b jfxmobile.gradle androidRelease /* generates an apk that is signed with the configured signingConfig and put it in the directorybuild/javafxports/android  */
+gradlew -b jfxmobile.gradle androidInstall /* installs the generated debug apk onto a device that is connected to your desktop  */
 ```
 
 ### Web Browser
