@@ -1,28 +1,28 @@
 package io.thingweb.wot.fxui;
 
-import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
+import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonValue.ValueType;
+import javax.json.JsonWriter;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
 
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIcon;
 import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.thingweb.wot.fxui.JSONLD.Form;
@@ -95,6 +95,12 @@ public class MainLayoutController {
 
 	@FXML
 	TextArea textAreaJSONLD;
+
+	@FXML
+	Button buttonHypermediaControl;
+
+	@FXML
+	Button buttonInvokeFade;
 
 	static final Font FONT_CATEGORY = Font.font("Arial", FontWeight.BOLD, 20);
 
@@ -638,6 +644,147 @@ public class MainLayoutController {
 		} catch (Exception e) {
 			LOGGER.severe(e.getMessage());
 			showAlertDialog(e);
+		}
+	}
+
+	final String actionName = "/fade";
+	final String actionNameId = "/fade/1";
+
+	HttpServer server = null;
+
+	@FXML
+	// https://github.com/w3c/wot-thing-description/tree/master/proposals/hypermedia-control
+	protected void startHypermediaControlServer(ActionEvent event) {
+		try {
+			// https://github.com/w3c/wot-thing-description/tree/master/proposals/hypermedia-control
+
+			if(server == null) {
+				server = HttpServer.create(new InetSocketAddress("localhost", 8001), 0);
+				server.createContext(actionName, new MyHandler());
+				server.setExecutor(null); // creates a default executor
+				server.start();
+
+				// buttonHypermediaControl.setDisable(true);
+				buttonHypermediaControl.setText("Stop Hypermedia-Control Server");
+				buttonInvokeFade.setDisable(false);
+			} else {
+				// stop
+				server.stop(0); // no delay
+				server = null;
+
+				// buttonHypermediaControl.setDisable(false);
+				buttonHypermediaControl.setText("Start Hypermedia-Control Server");
+				buttonInvokeFade.setDisable(true);
+			}
+
+		} catch (Exception e) {
+			LOGGER.severe(e.getMessage());
+			showAlertDialog(e);
+		}
+	}
+
+	@FXML
+	protected void invokeFade(ActionEvent event) {
+		try {
+			server.createContext(actionNameId, new MyHandler2());
+			// start task
+			long delayMs = 0 * 1000; // 0 seconds
+			long periodMs = (1000) * 1; // X seconds
+			long runtimeMs = (1000) * 20; // X seconds
+			Timer timer = new Timer();
+			timer.schedule(new MyTimerTask(server, buttonInvokeFade, runtimeMs), delayMs, periodMs);
+		} catch (Exception e) {
+			LOGGER.severe(e.getMessage());
+			showAlertDialog(e);
+		}
+	}
+
+	class MyHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			// otherwise the handler would also handle /fade/XXX
+			if(t.getRequestURI().getPath().endsWith(actionName)) {
+				JsonObject object = Json.createObjectBuilder().add("td", 1).build();
+				StringWriter sw = new StringWriter();
+				JsonWriter writer = Json.createWriter(sw);
+				writer.write(object);
+				String response = sw.toString();
+				t.getResponseHeaders().set("content-type", "application/json");
+				t.sendResponseHeaders(200, response.length());
+				OutputStream os = t.getResponseBody();
+				os.write(response.getBytes());
+				os.close();
+			} else {
+				String response = "404";
+				t.sendResponseHeaders(404, response.length());
+				OutputStream os = t.getResponseBody();
+				os.write(response.getBytes());
+				os.close();
+			}
+		}
+	}
+
+	class MyHandler2 implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			JsonObject object = Json.createObjectBuilder().add("td", 2).build();
+			StringWriter sw = new StringWriter();
+			JsonWriter writer = Json.createWriter(sw);
+			writer.write(object);
+			String response = sw.toString();
+			t.getResponseHeaders().set("content-type", "application/json");
+			t.sendResponseHeaders(200, response.length());
+			OutputStream os = t.getResponseBody();
+			os.write(response.getBytes());
+			os.close();
+		}
+	}
+
+	class MyTimerTask extends TimerTask {
+
+		// milliseconds
+		long lastRun = 0;
+		final HttpServer server;
+		final Button buttonInvoke;
+		long runtimeRemaining;
+		String originalText;
+
+		public MyTimerTask(HttpServer server, Button buttonInvoke, long runtime) {
+			this.server = server;
+			this.buttonInvoke = buttonInvoke;
+			this.runtimeRemaining = runtime;
+		}
+
+		@Override
+		public void run() {
+			long currentMillis = System.currentTimeMillis();
+			if(lastRun == 0) {
+				// first run
+				Platform.runLater(()->{
+					this.buttonInvoke.setDisable(true);
+					originalText = this.buttonInvoke.getText();
+					this.buttonInvoke.setText(actionName + " vs. " + actionNameId + " (Running for " + runtimeRemaining + " ms ...");
+				});
+			} else {
+				// calculate remaining
+				runtimeRemaining -= (currentMillis - lastRun); // milliseconds
+				if (runtimeRemaining > 0) {
+					// continue
+					Platform.runLater(()->{
+						this.buttonInvoke.setDisable(true);
+						this.buttonInvoke.setText(actionName + " vs. " + actionNameId + " (Running for " + runtimeRemaining + " ms ...");
+					});
+				} else {
+					// stop
+					server.removeContext(actionNameId);
+					this.cancel();
+					Platform.runLater(()->{
+						this.buttonInvoke.setDisable(false);
+						this.buttonInvoke.setText(originalText);
+					});
+				}
+			}
+			lastRun = currentMillis;
 		}
 	}
 

@@ -17,10 +17,11 @@
 <?import javafx.scene.layout.VBox?>
 <?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
 
+<?import javafx.scene.layout.HBox?>
 <StackPane fx:id="stackPaneRoot"
-	xmlns="http://javafx.com/javafx/8.0.171"
-	xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="io.thingweb.wot.fxui.MainLayoutController">
+		   xmlns="http://javafx.com/javafx/8.0.171"
+		   xmlns:fx="http://javafx.com/fxml/1"
+		   fx:controller="io.thingweb.wot.fxui.MainLayoutController">
 	<children>
 		<BorderPane fx:id="borderPaneRoot">
 			<top>
@@ -104,6 +105,22 @@
 												
 												</VBox>
 											</center>
+										</BorderPane>
+									</TitledPane>
+
+									<TitledPane text="Explorations">
+										<BorderPane>
+											<padding>
+												<Insets bottom="10" left="10" right="10" top="10" />
+											</padding>
+											<top>
+												<HBox>
+													<Button fx:id="buttonHypermediaControl" onAction="#startHypermediaControlServer" text="Start Hypermedia-Control Server" >
+													</Button>
+													<Button fx:id="buttonInvokeFade" onAction="#invokeFade" text="Invoke fade" disable="true" >
+													</Button>
+												</HBox>
+											</top>
 										</BorderPane>
 									</TitledPane>
 									
