@@ -114,12 +114,17 @@
 												<Insets bottom="10" left="10" right="10" top="10" />
 											</padding>
 											<top>
-												<HBox>
-													<Button fx:id="buttonHypermediaControl" onAction="#startHypermediaControlServer" text="Start Hypermedia-Control Server" >
-													</Button>
-													<Button fx:id="buttonInvokeFade" onAction="#invokeFade" text="Invoke fade" disable="true" >
-													</Button>
-												</HBox>
+												<VBox>
+													<HBox>
+														<Button fx:id="buttonHypermediaControl" onAction="#startHypermediaControlServer" text="Start Hypermedia-Control Server" >
+														</Button>
+														<Button fx:id="buttonInvokeFade" onAction="#invokeFade" text="Invoke fade" disable="true" >
+														</Button>
+													</HBox>
+													<HBox>
+														<Label fx:id="labelTD" onMouseClicked="#showTD" managed="false" visible="false"  text="TD"></Label>
+													</HBox>
+												</VBox>
 											</top>
 										</BorderPane>
 									</TitledPane>

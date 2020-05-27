@@ -1,20 +1,19 @@
 package io.thingweb.wot.fxui;
 
+import java.awt.*;
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URL;
+import java.net.*;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.List;
 import java.util.logging.Logger;
 
-import javax.json.Json;
-import javax.json.JsonObject;
+import javax.json.*;
 import javax.json.JsonValue.ValueType;
-import javax.json.JsonWriter;
+import javax.json.stream.JsonGenerator;
 
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
@@ -101,6 +100,9 @@ public class MainLayoutController {
 
 	@FXML
 	Button buttonInvokeFade;
+
+	@FXML
+	Label labelTD;
 
 	static final Font FONT_CATEGORY = Font.font("Arial", FontWeight.BOLD, 20);
 
@@ -647,10 +649,16 @@ public class MainLayoutController {
 		}
 	}
 
+	final int PORT = 8001;
+	final String thingName = "/HypermediaControlThing";
 	final String actionName = "/fade";
 	final String actionNameId = "/fade/1";
 
 	HttpServer server = null;
+	String ip;
+
+	boolean fadeActionRunning = false;
+	FadeTimerTask fadeTimerTask;
 
 	@FXML
 	// https://github.com/w3c/wot-thing-description/tree/master/proposals/hypermedia-control
@@ -659,14 +667,23 @@ public class MainLayoutController {
 			// https://github.com/w3c/wot-thing-description/tree/master/proposals/hypermedia-control
 
 			if(server == null) {
-				server = HttpServer.create(new InetSocketAddress("localhost", 8001), 0);
-				server.createContext(actionName, new MyHandler());
+				InetAddress inetAddress = InetAddress.getLocalHost();
+				ip = inetAddress.getHostAddress();
+				System.out.println("IP Address:- " + ip);
+				System.out.println("Host Name:- " + inetAddress.getHostName());
+
+				server = HttpServer.create(new InetSocketAddress(ip, PORT), 0);
+				server.createContext(thingName, new TDHandler());
+				server.createContext(thingName + actionName, new ActionHandler());
 				server.setExecutor(null); // creates a default executor
 				server.start();
 
 				// buttonHypermediaControl.setDisable(true);
 				buttonHypermediaControl.setText("Stop Hypermedia-Control Server");
 				buttonInvokeFade.setDisable(false);
+				labelTD.setText("TD --> " + getURL(null));
+				labelTD.setVisible(true);
+				labelTD.setManaged(true);
 			} else {
 				// stop
 				server.stop(0); // no delay
@@ -675,6 +692,8 @@ public class MainLayoutController {
 				// buttonHypermediaControl.setDisable(false);
 				buttonHypermediaControl.setText("Start Hypermedia-Control Server");
 				buttonInvokeFade.setDisable(true);
+				labelTD.setVisible(false);
+				labelTD.setManaged(false);
 			}
 
 		} catch (Exception e) {
@@ -684,63 +703,202 @@ public class MainLayoutController {
 	}
 
 	@FXML
-	protected void invokeFade(ActionEvent event) {
+	protected void showTD() {
 		try {
-			server.createContext(actionNameId, new MyHandler2());
-			// start task
-			long delayMs = 0 * 1000; // 0 seconds
-			long periodMs = (1000) * 1; // X seconds
-			long runtimeMs = (1000) * 20; // X seconds
-			Timer timer = new Timer();
-			timer.schedule(new MyTimerTask(server, buttonInvokeFade, runtimeMs), delayMs, periodMs);
+			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+				new Thread(() -> {
+					try {
+						Desktop.getDesktop().browse(new URI(getURL(null)));
+					} catch (IOException | URISyntaxException e) {
+						e.printStackTrace();
+					}
+				}).start();
+			}
 		} catch (Exception e) {
-			LOGGER.severe(e.getMessage());
-			showAlertDialog(e);
+			// noop
 		}
 	}
 
-	class MyHandler implements HttpHandler {
+	@FXML
+	protected void invokeFade() {
+		try {
+			if(!fadeActionRunning) {
+				server.createContext(thingName + actionNameId, new ActionRunningHandler());
+				// start task
+				long delayMs = 0 * 1000; // 0 seconds
+				long periodMs = (1000) * 1; // X seconds
+				long runtimeMs = (1000) * 30; // X seconds
+				Timer timer = new Timer();
+				fadeTimerTask = new FadeTimerTask(server, buttonInvokeFade, runtimeMs);
+				timer.schedule(fadeTimerTask, delayMs, periodMs);
+			}
+		} catch (Exception e) {
+			LOGGER.severe(e.getMessage());
+			// showAlertDialog(e);
+		}
+	}
+
+	protected void stopFade() {
+		try {
+			if(fadeActionRunning) {
+				fadeActionRunning = false;
+				server.removeContext(thingName + actionNameId);
+				fadeTimerTask.cancel();
+				Platform.runLater(()->{
+					fadeTimerTask.buttonInvoke.setDisable(false);
+					fadeTimerTask.buttonInvoke.setText(fadeTimerTask.originalText);
+					fadeTimerTask = null;
+				});
+			}
+		} catch (Exception e) {
+			LOGGER.severe(e.getMessage());
+		}
+	}
+
+	String getURL(String app) {
+		if(app == null) {
+			return "http://" + ip + ":" + PORT+ thingName;
+		} else {
+			return "http://" + ip + ":" + PORT + thingName + actionName;
+		}
+	}
+
+	JsonObject createTD() {
+		JsonArrayBuilder formsBuilder = Json.createArrayBuilder();
+		// single form always
+		formsBuilder.add(Json.createObjectBuilder()
+				.add("href", getURL(actionName))
+				.add("op", "invokeaction")
+		);
+		if(fadeActionRunning) {
+			// add more forms / controls
+			formsBuilder.add(Json.createObjectBuilder()
+					.add("href", getURL(actionNameId))
+					.add("htv:methodName", "GET")
+			);
+			// need for PUT ?
+//			formsBuilder.add(Json.createObjectBuilder()
+//					.add("href", "http://" + ip + ":" + PORT + thingName + actionNameId)
+//					.add("htv:methodName", "PUT")
+//			);
+			formsBuilder.add(Json.createObjectBuilder()
+					.add("href", getURL(actionNameId))
+					.add("htv:methodName", "DELETE")
+			);
+		}
+
+
+		JsonObject td = Json.createObjectBuilder()
+				.add("@context", "https://www.w3.org/2019/wot/td/v1")
+				.add("title", "HypermediaControlThing")
+				.add("securityDefinitions", Json.createObjectBuilder()
+						.add("nosec_sc", Json.createObjectBuilder()
+								.add("scheme", "nosec")
+						)
+				)
+				.add("security", "nosec_sc")
+				.add("actions", Json.createObjectBuilder()
+						.add("fade", Json.createObjectBuilder()
+								.add("forms", formsBuilder
+								)
+						)
+				)
+				.build();
+		return td;
+	}
+
+	String getJsonString(JsonObject jo) {
+		Map<String, Boolean> config = new HashMap<>();
+		config.put(JsonGenerator.PRETTY_PRINTING, true);
+		JsonWriterFactory jwf = Json.createWriterFactory(config);
+		StringWriter sw = new StringWriter();
+		try (JsonWriter jsonWriter = jwf.createWriter(sw)) {
+			jsonWriter.writeObject(jo);
+		}
+		return sw.toString();
+	}
+
+
+	class TDHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			// otherwise the handler would also handle /fade/XXX
-			if(t.getRequestURI().getPath().endsWith(actionName)) {
-				JsonObject object = Json.createObjectBuilder().add("td", 1).build();
-				StringWriter sw = new StringWriter();
-				JsonWriter writer = Json.createWriter(sw);
-				writer.write(object);
-				String response = sw.toString();
-				t.getResponseHeaders().set("content-type", "application/json");
-				t.sendResponseHeaders(200, response.length());
-				OutputStream os = t.getResponseBody();
-				os.write(response.getBytes());
-				os.close();
+			if(t.getRequestURI().getPath().endsWith(thingName)) {
+				JsonObject td = createTD();
+				String response = getJsonString(td);
+				reportJson(t, response);
 			} else {
-				String response = "404";
-				t.sendResponseHeaders(404, response.length());
-				OutputStream os = t.getResponseBody();
-				os.write(response.getBytes());
-				os.close();
+				report404(t);
 			}
 		}
 	}
 
-	class MyHandler2 implements HttpHandler {
+	void reportJson(HttpExchange t, String response) throws IOException {
+		response = response == null ? "" : response;
+		t.getResponseHeaders().set("content-type", "application/json");
+		t.sendResponseHeaders(200, response.length());
+		OutputStream os = t.getResponseBody();
+		os.write(response.getBytes());
+		os.close();
+	}
+
+	void report404(HttpExchange t) throws IOException {
+		String response = "404";
+		t.sendResponseHeaders(404, response.length());
+		OutputStream os = t.getResponseBody();
+		os.write(response.getBytes());
+		os.close();
+	}
+
+	class ActionHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			JsonObject object = Json.createObjectBuilder().add("td", 2).build();
-			StringWriter sw = new StringWriter();
-			JsonWriter writer = Json.createWriter(sw);
-			writer.write(object);
-			String response = sw.toString();
-			t.getResponseHeaders().set("content-type", "application/json");
-			t.sendResponseHeaders(200, response.length());
-			OutputStream os = t.getResponseBody();
-			os.write(response.getBytes());
-			os.close();
+			if("POST".equals(t.getRequestMethod())) {
+				// start action
+				invokeFade();
+				reportJson(t, null);
+			} else {
+				report404(t);
+			}
 		}
 	}
 
-	class MyTimerTask extends TimerTask {
+	class ActionRunningHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			JsonObject object = null;
+			switch(t.getRequestMethod()) {
+				case "GET":
+					if(fadeActionRunning) {
+						// report remaining running time
+						object = Json.createObjectBuilder()
+								.add("fadeRemaining", fadeTimerTask.runtimeRemaining)
+								.build();
+					}
+					break;
+				case "PUT":
+					// what to do?
+					break;
+				case "DELETE":
+					if(fadeActionRunning) {
+						// stop action & report remaining running time being 0
+						object = Json.createObjectBuilder()
+								.add("fadeRemaining", 0)
+								.build();
+						stopFade();
+					}
+					break;
+			}
+			if(object != null) {
+				String response = getJsonString(object);
+				reportJson(t, response);
+			} else {
+				report404(t);
+			}
+		}
+	}
+
+	class FadeTimerTask extends TimerTask {
 
 		// milliseconds
 		long lastRun = 0;
@@ -749,7 +907,7 @@ public class MainLayoutController {
 		long runtimeRemaining;
 		String originalText;
 
-		public MyTimerTask(HttpServer server, Button buttonInvoke, long runtime) {
+		public FadeTimerTask(HttpServer server, Button buttonInvoke, long runtime) {
 			this.server = server;
 			this.buttonInvoke = buttonInvoke;
 			this.runtimeRemaining = runtime;
@@ -757,6 +915,7 @@ public class MainLayoutController {
 
 		@Override
 		public void run() {
+			fadeActionRunning = true;
 			long currentMillis = System.currentTimeMillis();
 			if(lastRun == 0) {
 				// first run
@@ -776,12 +935,7 @@ public class MainLayoutController {
 					});
 				} else {
 					// stop
-					server.removeContext(actionNameId);
-					this.cancel();
-					Platform.runLater(()->{
-						this.buttonInvoke.setDisable(false);
-						this.buttonInvoke.setText(originalText);
-					});
+					stopFade();
 				}
 			}
 			lastRun = currentMillis;
