@@ -13,6 +13,12 @@ https://stackoverflow.com/questions/42143300/how-can-i-install-android-support-l
 
 ## Building & Running
 
+### Run
+
+```
+mvn jfx:urun
+```
+
 ### Executable
 
 ```
