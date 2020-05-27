@@ -649,7 +649,7 @@ public class MainLayoutController {
 		}
 	}
 
-	final int PORT = 8089;
+	final int PORT = 8084;
 	final String thingName = "/HypermediaControlThing";
 	final String actionName = "/fade";
 	final String actionNameId = "/fade/1";
