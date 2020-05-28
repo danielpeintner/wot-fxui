@@ -759,7 +759,7 @@ public class MainLayoutController {
 		if(app == null) {
 			return "http://" + ip + ":" + PORT+ thingName;
 		} else {
-			return "http://" + ip + ":" + PORT + thingName + actionName;
+			return "http://" + ip + ":" + PORT + thingName + app;
 		}
 	}
 
