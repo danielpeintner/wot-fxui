@@ -768,6 +768,7 @@ public class MainLayoutController {
 		// single form always
 		formsBuilder.add(Json.createObjectBuilder()
 				.add("href", getURL(actionName))
+				.add("htv:methodName", "POST")
 				.add("op", "invokeaction")
 		);
 		if(fadeActionRunning) {
@@ -775,6 +776,7 @@ public class MainLayoutController {
 			formsBuilder.add(Json.createObjectBuilder()
 					.add("href", getURL(actionNameId))
 					.add("htv:methodName", "GET")
+					.add("op", "readaction")
 			);
 			// need for PUT ?
 //			formsBuilder.add(Json.createObjectBuilder()
@@ -784,6 +786,7 @@ public class MainLayoutController {
 			formsBuilder.add(Json.createObjectBuilder()
 					.add("href", getURL(actionNameId))
 					.add("htv:methodName", "DELETE")
+					.add("op", "cancelaction")
 			);
 		}
 
