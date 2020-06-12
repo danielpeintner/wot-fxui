@@ -196,11 +196,13 @@ public class JSONLD {
 	public static List<SecurityScheme> getSecuritySchemes(JsonObject jobj) {
 		List<SecurityScheme> securitySchemes = new ArrayList<>();
 
-		if (jobj.containsKey("security") && jobj.get("security").getValueType() == ValueType.ARRAY) {
-			JsonArray jaSecurity = jobj.get("security").asJsonArray();
-			for(int i=0; i<jaSecurity.size(); i++) {
-				if (jaSecurity.get(i) != null && jaSecurity.get(i).getValueType() == ValueType.OBJECT) {
-					JsonObject joSecurity = jaSecurity.get(i).asJsonObject();
+		if (jobj.containsKey("securityDefinitions") && jobj.get("securityDefinitions").getValueType() == ValueType.OBJECT) {
+			JsonObject jaSecurityDefinitions = jobj.get("securityDefinitions").asJsonObject();
+			for(String secID : jaSecurityDefinitions.keySet()) {
+				if (jobj.get("securityDefinitions").getValueType() == ValueType.OBJECT
+						&& jobj.get("securityDefinitions").asJsonObject().containsKey(secID)
+						&& jobj.get("securityDefinitions").asJsonObject().get(secID).getValueType() == ValueType.OBJECT) {
+					JsonObject joSecurity = jobj.get("securityDefinitions").asJsonObject().get(secID).asJsonObject();
 
 					if (joSecurity.containsKey("scheme") && joSecurity.get("scheme").getValueType() == ValueType.STRING) {
 						String scheme = joSecurity.getString("scheme");
