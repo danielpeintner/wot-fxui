@@ -171,7 +171,7 @@ public class MainLayoutController implements Initializable {
 			String base = JSONLD.getBase(jobj);
 
 			final TextField textFieldUsername = new TextField();
-			final TextField textFieldPassword = new TextField();
+			final PasswordField passwordFieldPassword = new PasswordField();
 
 			ObservableList<String> securitySchemes =
 				    FXCollections.observableArrayList(
@@ -199,7 +199,7 @@ public class MainLayoutController implements Initializable {
 				row++;
 
 				gridPane.add(new Label("Password: "), 0, row, 1, 1);
-				gridPane.add(textFieldPassword, 1, row, 3, 1);
+				gridPane.add(passwordFieldPassword, 1, row, 3, 1);
 				row++;
 			}
 
@@ -298,7 +298,7 @@ public class MainLayoutController implements Initializable {
 									};
 
 
-									client.get(propertyName, uri, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
+									client.get(propertyName, uri, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, passwordFieldPassword));
 
 								} catch (Exception e1) {
 									// log error
@@ -365,7 +365,7 @@ public class MainLayoutController implements Initializable {
 										};
 										// mediaType
 										Content propertyValue = new Content(textFieldPUT.getText().getBytes(), MediaType.getMediaType(propForm.form.mediaType));
-										client.put(propertyName, uri, propertyValue, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
+										client.put(propertyName, uri, propertyValue, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, passwordFieldPassword));
 									} catch (Exception e1) {
 										// log error
 										String msg = "Error: " + e1.getMessage();
@@ -443,7 +443,7 @@ public class MainLayoutController implements Initializable {
 								};
 								// TODO action value
 								Content actionValue = new Content(new byte[0], MediaType.APPLICATION_JSON);
-								client.action(actionName, uri, actionValue, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, textFieldPassword));
+								client.action(actionName, uri, actionValue, callback, getRequestOptions(comboBoxSecurity, textFieldUsername, passwordFieldPassword));
 								// }
 							} catch (Exception e1) {
 								// log error
