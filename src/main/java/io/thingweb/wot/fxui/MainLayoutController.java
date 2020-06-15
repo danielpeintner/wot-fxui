@@ -1,24 +1,8 @@
 package io.thingweb.wot.fxui;
 
-import java.awt.*;
-import java.io.*;
-import java.net.*;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.List;
-import java.util.logging.Logger;
-
-import javax.json.*;
-import javax.json.JsonValue.ValueType;
-import javax.json.stream.JsonGenerator;
-
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
-
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -27,12 +11,8 @@ import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView;
 import io.thingweb.wot.fxui.JSONLD.Form;
 import io.thingweb.wot.fxui.JSONLD.ProtocolMediaType;
 import io.thingweb.wot.fxui.JSONLD.SecurityScheme;
-import io.thingweb.wot.fxui.client.Callback;
-import io.thingweb.wot.fxui.client.Client;
+import io.thingweb.wot.fxui.client.*;
 import io.thingweb.wot.fxui.client.Client.RequestOption;
-import io.thingweb.wot.fxui.client.ClientFactory;
-import io.thingweb.wot.fxui.client.Content;
-import io.thingweb.wot.fxui.client.MediaType;
 import io.thingweb.wot.fxui.client.impl.AbstractCallback;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -40,37 +20,40 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Window;
 
-public class MainLayoutController {
+import javax.json.*;
+import javax.json.JsonValue.ValueType;
+import javax.json.stream.JsonGenerator;
+import java.awt.*;
+import java.io.*;
+import java.net.*;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.*;
+import java.util.logging.Logger;
+
+public class MainLayoutController implements Initializable {
 
 	private final static Logger LOGGER = Logger.getLogger(MainLayoutController.class.getName());
 
@@ -97,6 +80,9 @@ public class MainLayoutController {
 
 	@FXML
 	Button buttonHypermediaControl;
+
+	@FXML
+	ComboBox comboBoxHypermediaControl;
 
 	@FXML
 	Button buttonInvokeFade;
@@ -660,6 +646,21 @@ public class MainLayoutController {
 	boolean fadeActionRunning = false;
 	FadeTimerTask fadeTimerTask;
 
+
+	@Override
+	public void initialize(URL location, ResourceBundle resources) {
+		try {
+			// Just in case this host has multiple IP addresses....
+			List<InetAddress> ias = getListOfIPsFromNIs();
+			for(InetAddress ia : ias) {
+				comboBoxHypermediaControl.getItems().add(ia.getHostAddress());
+			}
+			comboBoxHypermediaControl.getSelectionModel().select(0);
+		} catch (SocketException e) {
+			// ignore
+		}
+	}
+
 	@FXML
 	// https://github.com/w3c/wot-thing-description/tree/master/proposals/hypermedia-control
 	protected void startHypermediaControlServer(ActionEvent event) {
@@ -667,12 +668,14 @@ public class MainLayoutController {
 			// https://github.com/w3c/wot-thing-description/tree/master/proposals/hypermedia-control
 
 			if(server == null) {
-				InetAddress inetAddress = InetAddress.getLocalHost();
-				ip = inetAddress.getHostAddress();
+				// InetAddress inetAddress = InetAddress.getLocalHost();
+				// ip = inetAddress.getHostAddress();
+				ip = comboBoxHypermediaControl.getSelectionModel().getSelectedItem().toString();
 				System.out.println("IP Address:- " + ip);
-				System.out.println("Host Name:- " + inetAddress.getHostName());
+				// System.out.println("Host Name:- " + inetAddress.getHostName());
 
 				server = HttpServer.create(new InetSocketAddress(ip, PORT), 0);
+
 				server.createContext(thingName, new TDHandler());
 				server.createContext(thingName + actionName, new ActionHandler());
 				server.setExecutor(null); // creates a default executor
@@ -680,6 +683,7 @@ public class MainLayoutController {
 
 				// buttonHypermediaControl.setDisable(true);
 				buttonHypermediaControl.setText("Stop Hypermedia-Control Server");
+				comboBoxHypermediaControl.setDisable(true);
 				buttonInvokeFade.setDisable(false);
 				labelTD.setText("TD --> " + getURL(null));
 				labelTD.setVisible(true);
@@ -691,6 +695,7 @@ public class MainLayoutController {
 
 				// buttonHypermediaControl.setDisable(false);
 				buttonHypermediaControl.setText("Start Hypermedia-Control Server");
+				comboBoxHypermediaControl.setDisable(false);
 				buttonInvokeFade.setDisable(true);
 				labelTD.setVisible(false);
 				labelTD.setManaged(false);
@@ -700,6 +705,23 @@ public class MainLayoutController {
 			LOGGER.severe(e.getMessage());
 			showAlertDialog(e);
 		}
+	}
+
+	// Get list of IP addresses from all local network interfaces
+	public List<InetAddress> getListOfIPsFromNIs() throws SocketException {
+		List<InetAddress> addrList = new ArrayList<>();
+		Enumeration<NetworkInterface> enumNI = NetworkInterface.getNetworkInterfaces();
+		while (enumNI.hasMoreElements()) {
+			NetworkInterface ifc = enumNI.nextElement();
+			if (ifc.isUp()) {
+				Enumeration<InetAddress> enumAdds = ifc.getInetAddresses();
+				while (enumAdds.hasMoreElements()) {
+					InetAddress addr = enumAdds.nextElement();
+					addrList.add(addr);
+				}
+			}
+		}
+		return addrList;
 	}
 
 	@FXML

@@ -18,6 +18,7 @@
 <?import de.jensd.fx.glyphs.fontawesome.FontAwesomeIconView?>
 
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.ComboBox?>
 <StackPane fx:id="stackPaneRoot"
 		   xmlns="http://javafx.com/javafx/8.0.171"
 		   xmlns:fx="http://javafx.com/fxml/1"
@@ -118,11 +119,12 @@
 													<HBox>
 														<Button fx:id="buttonHypermediaControl" onAction="#startHypermediaControlServer" text="Start Hypermedia-Control Server" >
 														</Button>
-														<Button fx:id="buttonInvokeFade" onAction="#invokeFade" text="Invoke fade" disable="true" >
-														</Button>
+														<ComboBox fx:id="comboBoxHypermediaControl"></ComboBox>
+														<Label fx:id="labelTD" onMouseClicked="#showTD" managed="false" visible="false"  text="TD"></Label>
 													</HBox>
 													<HBox>
-														<Label fx:id="labelTD" onMouseClicked="#showTD" managed="false" visible="false"  text="TD"></Label>
+														<Button fx:id="buttonInvokeFade" onAction="#invokeFade" text="Invoke fade" disable="true" >
+														</Button>
 													</HBox>
 												</VBox>
 											</top>
