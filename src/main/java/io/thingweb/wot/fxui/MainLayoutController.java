@@ -640,8 +640,8 @@ public class MainLayoutController implements Initializable {
 	final String actionName = "/fade";
 	final String actionNameId = "/fade/1";
 
-	HttpServer server = null;
-	String ip;
+	static HttpServer server = null;
+	static String ip;
 
 	boolean fadeActionRunning = false;
 	FadeTimerTask fadeTimerTask;
