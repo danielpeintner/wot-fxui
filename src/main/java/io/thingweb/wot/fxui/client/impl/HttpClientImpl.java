@@ -223,9 +223,14 @@ public class HttpClientImpl extends AbstractClientImpl {
 
 					Content c = new Content(baos.toByteArray(), mediaType);
 
-					// TODO generally all 2xx are success?
+					// generally all 2xx are success
+					// 200 OK
+					// 201 Created
+					// 202 Accepted
+					// 203 Non-Authoritative Information
 					// 204 No Content
-					if (responseCode == 200 || responseCode == 204) {
+					// ...
+					if (responseCode >= 200 && responseCode < 300) {
 						if(!isAction) {
 							callback.onPut(name,  c);
 						} else {
