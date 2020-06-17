@@ -816,6 +816,7 @@ public class MainLayoutController implements Initializable {
 		JsonObject td = Json.createObjectBuilder()
 				.add("@context", "https://www.w3.org/2019/wot/td/v1")
 				.add("title", "HypermediaControlThing")
+				.add("id", "urn:com:siemens:HypermediaControlThing")
 				.add("securityDefinitions", Json.createObjectBuilder()
 						.add("nosec_sc", Json.createObjectBuilder()
 								.add("scheme", "nosec")
