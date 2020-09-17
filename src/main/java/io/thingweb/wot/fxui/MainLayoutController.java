@@ -272,7 +272,7 @@ public class MainLayoutController implements Initializable {
 								LOGGER.info("GET " + propertyName);
 								ClientFactory cf = new ClientFactory();
 								try {
-									URI uri = new URI(propForm.form.href);
+									URI uri = new URI(getUriVariableSanitized(propForm.form.href));
 									Client client = cf.getClient(uri);
 									System.out.println(client);
 									Callback callback = new AbstractCallback() {
@@ -338,7 +338,7 @@ public class MainLayoutController implements Initializable {
 									try {
 										// String href = getInteractionHref(joProperty);
 
-										URI uri = new URI(propForm.form.href);
+										URI uri = new URI(getUriVariableSanitized(propForm.form.href));
 										Client client = cf.getClient(uri);
 										System.out.println(client);
 										Callback callback = new AbstractCallback() {
@@ -420,7 +420,7 @@ public class MainLayoutController implements Initializable {
 								// actionName);
 								// if(forms.size() > 0) {
 								// URI uri = new URI(forms.get(0).href);
-								URI uri = new URI(form.href);
+								URI uri = new URI(getUriVariableSanitized(form.href));
 								Client client = cf.getClient(uri);
 								System.out.println(client);
 								Callback callback = new AbstractCallback() {
@@ -503,6 +503,24 @@ public class MainLayoutController implements Initializable {
 		// t.setContent(splitPane);
 		tabPane.getTabs().add(t);
 		tabPane.getSelectionModel().select(t);
+	}
+
+	// e.g., "http://plugfest.thingweb.io:8083/counter/actions/increment{?step}" --> "http://plugfest.thingweb.io:8083/counter/actions/increment"
+	String getUriVariableSanitized(String href) {
+		if (href != null) {
+			int indexBegin = href.indexOf("{?");
+			if(indexBegin > 0) {
+				return href.substring(0, indexBegin);
+				// Question: Can there be multiple uriVariables and in the middle of an URL?
+				/*
+				int indexEnd = href.indexOf("}", indexBegin);
+				if(indexEnd > 0) {
+					//
+				}
+				*/
+			}
+		}
+		return href;
 	}
 
 //	@FXML
