@@ -56,7 +56,7 @@
 												<GridPane>
 													<children>
 														<TextField fx:id="textFieldURI"
-															text="http://plugfest.thingweb.io:8083/TestThing" GridPane.hgrow="ALWAYS" />
+															text="http://plugfest.thingweb.io:8083/testthing" GridPane.hgrow="ALWAYS" />
 														<Button onAction="#handleLoadTDURI"
 															text="Load URI" GridPane.columnIndex="1"
 															GridPane.halignment="RIGHT" >
