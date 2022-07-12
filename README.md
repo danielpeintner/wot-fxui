@@ -1,5 +1,9 @@
 # wot-fxui
 
+## Running Web-UI instance
+
+http://plugfest.thingweb.io:8088/test/fullscreen/default
+
 ## Installation
 
 JavaFXPorts: 
