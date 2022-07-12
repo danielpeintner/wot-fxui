@@ -38,6 +38,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Window;
+import org.eclipse.californium.core.CoapClient;
+import org.eclipse.californium.core.CoapResponse;
+import org.eclipse.californium.core.coap.Request;
 
 import javax.json.*;
 import javax.json.JsonValue.ValueType;
@@ -591,13 +594,22 @@ public class MainLayoutController implements Initializable {
 	@FXML
 	protected void handleLoadTDURI(ActionEvent event) {
 		try {
-			URI uri = new URI(textFieldURI.getText());
-			// TODO coap scheme use californium
-
-			URL url = uri.toURL(); // get URL from your uri object
-			try(InputStream istream = url.openStream()) {
-				JsonObject jobj = JSONLD.parseJSON(istream);
-				loadTD(jobj);
+			JsonObject td;
+			String suri = textFieldURI.getText();
+			if (suri != null) {
+				suri = suri.trim();
+				if (suri.startsWith("coap")) {
+					CoapClient coap = new CoapClient(suri);
+					CoapResponse response = coap.get();
+					td = JSONLD.parseJSON(response.getResponseText());
+				} else {
+					URI uri = new URI(suri);
+					URL url = uri.toURL(); // get URL from your uri object
+					try(InputStream istream = url.openStream()) {
+						td = JSONLD.parseJSON(istream);
+					}
+				}
+				loadTD(td);
 			}
 		} catch (Exception e) {
 			LOGGER.severe(e.getMessage());
